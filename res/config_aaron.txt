@@ -1,0 +1,124 @@
+{
+	"sqlWorkerConfig": [
+	    {
+            "host":"qeo003.schackenberg.com",
+            "port":50549,
+            "frequency":30,
+            "username":"whyinvestigator",
+            "password":"Start123",
+            "libraries": [
+                "user",
+                "instance",
+                "database"
+        	]
+        },
+        {
+            "host":"qeo003.schackenberg.com",
+            "port":49777,
+            "frequency":30,
+            "username":"whyinvestigator",
+            "password":"Start123",
+            "libraries": [
+                "user",
+                "instance",
+                "database"
+            ]
+        },
+        {
+            "host":"qeo003.schackenberg.com",
+            "port":49813,
+            "frequency":30,
+            "username":"whyinvestigator",
+            "password":"Start123",
+            "libraries": [
+                "user",
+                "instance",
+                "database"
+            ]
+        },
+        {
+            "host":"qeo003.schackenberg.com",
+            "port":49811,
+            "frequency":30,
+            "username":"whyinvestigator",
+            "password":"Start123",
+            "libraries": [
+                "user",
+                "instance",
+                "database"
+            ]
+        },
+        {
+            "host":"terminal.schackenberg.com",
+            "port":1433,
+            "frequency":30,
+            "username":"projektwhy",
+            "password":"L37Mainz05",
+            "libraries": [
+                "user",
+                "instance",
+                "database"
+            ]
+        },
+	{
+            "host":"localhost",
+            "port":1433,
+            "frequency":30,
+            "username":"whyinvestigator",
+            "password":"Start123",
+            "libraries": [
+                "user",
+                "instance",
+                "database"
+            ]
+        },
+        {
+           "host":"qeo003.schackenberg.com",
+     	   "port":8391,
+           "frequency":30,
+           "username":"whyinvestigator",
+           "password":"Start123",
+           "libraries": [
+               "user",
+               "instance",
+               "database"
+             ]
+        }
+	],
+	"processorConfig" : {
+	    "fileDirectory":"/home/projektwhy/filestat2",
+	    "outDirectory":"/home/projektwhy/filestat2/Processed",
+	    "errorDirectory":"/home/projektwhy/filestat2/Error",
+	    "hostName":"localhost",
+	    "port":1433,
+	    "targetDatabaseName":"why_investigator_stage",
+	    "username":"sa",
+        "password":"L37Mainz05",
+	    "sleepTime":10
+	},
+	"fileWatcherConfig" : {
+	    "observedDirectory":"Z:/test/observed",
+	    "serverName":"qeo003.schackenberg.local",
+	    "sleepTime":30000
+	},
+	"gitConfig" : {
+	    "repoCloneURL":"https://aaronsch@bitbucket.org/schackenberg/filestat2.git",
+	    "repoPath":"/home/projektwhy/filestat2",
+	    "repoURL":"https://bitbucket.org/schackenberg/filestat2"
+	},
+	"controlConfig": {
+	    "isMaster":true,
+	    "port":8787,
+	    "slackLogging":true,
+	    "slackStatusDelay":3600000,
+	    "slackStatusPeriod":3600000,
+	    "slackWebHookUrl":"https://hooks.slack.com/services/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",
+	    "syncUser":"whyinvestigator",
+	    "syncPass":"Start123",
+	},
+	"syncConfig": {
+	    "syncUser":"whyinvestigator",
+	    "syncPass":"Start123",
+	    "sleepTime":10
+	}
+}
