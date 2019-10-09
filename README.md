@@ -103,18 +103,18 @@ After the repositories have been initialized, the main interface will appear, pr
                 "database"
             ]
         }                                   // end of another single host object to observe
-	],                                        // end of the sql worker module config
+	],                                        // end of the sql worker module configuration
 	"processorConfig" : {						// the configuration for the processor module
 	    "fileDirectory":"/home/projektwhy/filestat2",		// the path to the git repository used for managing local JSON files
-	    "outDirectory":"/home/projektwhy/filestat2/Processed",	// the path ot the git repository folder to store already 
-	    "errorDirectory":"/home/projektwhy/filestat2/Error",	// 
-	    "hostName":"localhost",
-	    "port":1433,
-	    "targetDatabaseName":"why_investigator_stage",
-	    "username":"sa",
-        "password":"L37Mainz05",
-	    "sleepTime":10
-	},
+	    "outDirectory":"/home/projektwhy/filestat2/Processed",	// the path ot the git repository directory to store already processed files
+	    "errorDirectory":"/home/projektwhy/filestat2/Error",	// the path to the git repository directory to store files that were unable to be processed
+	    "hostName":"localhost",					// the ip address of the sql server to process the gathered data to
+	    "port":1433,						// the port of the sql server to process the gathered data to
+	    "targetDatabaseName":"why_investigator_stage",		// the name of the database to process the gathered data to
+	    "username":"",						// the sql username for the processor module to use
+            "password":"",					// the password
+	    "sleepTime":10					// the sleep time
+	}, 						// end of the processor module configuration
 	"fileWatcherConfig" : {
 	    "observedDirectory":"Z:/test/observed",
 	    "serverName":"qeo003.schackenberg.local",
@@ -132,12 +132,12 @@ After the repositories have been initialized, the main interface will appear, pr
 	    "slackStatusDelay":3600000,
 	    "slackStatusPeriod":3600000,
 	    "slackWebHookUrl":"https://hooks.slack.com/services/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",
-	    "syncUser":"whyinvestigator",
-	    "syncPass":"Start123",
+	    "syncUser":"",
+	    "syncPass":"",
 	},
 	"syncConfig": {
-	    "syncUser":"whyinvestigator",
-	    "syncPass":"Start123",
+	    "syncUser":"",
+	    "syncPass":"",
 	    "sleepTime":10
 	}
 }
