@@ -115,13 +115,13 @@ After the repositories have been initialized, the main interface will appear, pr
 	}, 								// end of the processor module config
 	"fileWatcherConfig" : {						// the configuration for the file watcher module
 	    "observedDirectory":"Z:/test/observed",			// the path to the directory for the file watcher module to observe
-	    "serverName":"qeo003.schackenberg.local",			// 
+	    "serverName":"qeo003.server.local",			// 
 	    "sleepTime":30000						//
 	},								// end of the file watcher module config
 	"gitConfig" : {							// the configuration for Git
-	    "repoCloneURL":"https://aaronsch@bitbucket.org/schackenberg/filestat2.git", // the clone url for the repository to store the local data in
+	    "repoCloneURL":"https://yourclone.filestat2.git", // the clone url for the repository to store the local data in
 	    "repoPath":"/home/projektwhy/filestat2",			// the path to the repository to store the local data in
-	    "repoURL":"https://bitbucket.org/schackenberg/filestat2"	// the url of the repository to store the local data in
+	    "repoURL":"https://bitbucket.org/repo/filestat2"	// the url of the repository to store the local data in
 	},								// end of the Git config
 	"controlConfig": {						// the configuration for the control panel interface
 	    "isMaster":true,						// indicates permission to use the remote control interface
