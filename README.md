@@ -74,24 +74,22 @@ After the repositories have been initialized, the main interface will appear, pr
 
 ### Config file
 
-> Coming soon.
-
 ```
 {
-	"sqlWorkerConfig": [                // the configuration for the sql worker module
-	      {                             // start of a single host object to observe
-            "host":"examplehost.com",       // the ip address of the server to observe
-            "port":1433,                    // the port of the sql server instance (default 1433)
-            "frequency":30,                 // the amount of time to sleep between iterations (i.e., execute every 30 minutes)
-            "username":"example_username",  // the sql username for the sql worker module to use -> this can be left empty if AD-Authentication is used
-            "password":"example_password",  // the sql password for the sql worker module to use -> this can be left empty if AD-Authentication is used
-            "libraries": [                  // what data to collect from the instance
-                "user",                     // <- data concerning information about users (logins, roles, changes, etc.)
-                "instance",                 // <- data concerning information about the instance itself (hardware, state, connectivity, etc.)
-                "database"                  // <- data concerning information about the databases of the instance (dbs, tables, changes, etc.)
+	"sqlWorkerConfig": [                				// the configuration for the sql worker module
+	      {                             				// start of a single host object to observe
+            "host":"examplehost.com",       				// the ip address of the server to observe
+            "port":1433,                    				// the port of the sql server instance (default 1433)
+            "frequency":30,                 				// the amount of time to sleep between iterations (i.e., execute every 30 minutes)
+            "username":"example_username",  				// the sql username for the sql worker module to use -> this can be left empty if AD-Authentication is used
+            "password":"example_password",  				// the sql password for the sql worker module to use -> this can be left empty if AD-Authentication is used
+            "libraries": [                  				// what data to collect from the instance
+                "user",                     				// <- data concerning information about users (logins, roles, changes, etc.)
+                "instance",                 				// <- data concerning information about the instance itself (hardware, state, connectivity, etc.)
+                "database"                  				// <- data concerning information about the databases of the instance (dbs, tables, changes, etc.)
         	]
-        },                                  // end of a single host object to observe
-        {                                   // start of another single host object to observe 
+        },                                  				// end of a single host object to observe
+        {                                   				// start of another single host object to observe 
             "host":"examplehost2.com",
             "port":1433,
             "frequency":30,
@@ -102,8 +100,8 @@ After the repositories have been initialized, the main interface will appear, pr
                 "instance",
                 "database"
             ]
-        }                                   // end of another single host object to observe
-	],                                        // end of the sql worker module configuration
+        }                                   				// end of another single host object to observe
+	],                                        			// end of the sql worker module configuration
 	"processorConfig" : {						// the configuration for the processor module
 	    "fileDirectory":"/home/projektwhy/filestat2",		// the path to the git repository used for managing local JSON files
 	    "outDirectory":"/home/projektwhy/filestat2/Processed",	// the path ot the git repository directory to store already processed files
@@ -111,35 +109,28 @@ After the repositories have been initialized, the main interface will appear, pr
 	    "hostName":"localhost",					// the ip address of the sql server to process the gathered data to
 	    "port":1433,						// the port of the sql server to process the gathered data to
 	    "targetDatabaseName":"why_investigator_stage",		// the name of the database to process the gathered data to
-	    "username":"",						// the sql username for the processor module to use
-            "password":"",					// the password
-	    "sleepTime":10					// the sleep time
-	}, 						// end of the processor module configuration
-	"fileWatcherConfig" : {
-	    "observedDirectory":"Z:/test/observed",
-	    "serverName":"qeo003.schackenberg.local",
-	    "sleepTime":30000
+	    "username":"",						// the sql username for the processor module to use -> this can be left empty if AD-Authentication is used
+            "password":"",						// the sql password for the processor module to use -> this can be left empty if AD-Authentication is used
+	    "sleepTime":10						// the amount of time for the module to sleep in between iterations in minutes
+	}, 								// end of the processor module config
+	"fileWatcherConfig" : {						// the configuration for the file watcher module
+	    "observedDirectory":"Z:/test/observed",			// the path to the directory for the file watcher module to observe
+	    "serverName":"qeo003.schackenberg.local",			// 
+	    "sleepTime":30000						//
+	},								// end of the file watcher module config
+	"gitConfig" : {							// the configuration for Git
+	    "repoCloneURL":"https://aaronsch@bitbucket.org/schackenberg/filestat2.git", // the clone url for the repository to store the local data in
+	    "repoPath":"/home/projektwhy/filestat2",			// the path to the repository to store the local data in
+	    "repoURL":"https://bitbucket.org/schackenberg/filestat2"	// the url of the repository to store the local data in
+	},								// end of the Git config
+	"controlConfig": {						// the configuration for the control panel interface
+	    "isMaster":true,						// indicates permission to use the remote control interface
+	    "port":8787,						// the port for the remote control interface
+	    "slackLogging":true,					// whether or not slack status messages are sent or not
+	    "slackStatusDelay":3600000,					// the slack status message delay 
+	    "slackStatusPeriod":3600000,				// the slack status message period
+	    "slackWebHookUrl":"https://hooks.slack.com/services/XXXXXXXXX/XXXXXXXXX/XXXXXXXXXXXXXXX", // the slack token for slack integration
 	},
-	"gitConfig" : {
-	    "repoCloneURL":"https://aaronsch@bitbucket.org/schackenberg/filestat2.git",
-	    "repoPath":"/home/projektwhy/filestat2",
-	    "repoURL":"https://bitbucket.org/schackenberg/filestat2"
-	},
-	"controlConfig": {
-	    "isMaster":true,
-	    "port":8787,
-	    "slackLogging":true,
-	    "slackStatusDelay":3600000,
-	    "slackStatusPeriod":3600000,
-	    "slackWebHookUrl":"https://hooks.slack.com/services/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",
-	    "syncUser":"",
-	    "syncPass":"",
-	},
-	"syncConfig": {
-	    "syncUser":"",
-	    "syncPass":"",
-	    "sleepTime":10
-	}
 }
 
 ```
