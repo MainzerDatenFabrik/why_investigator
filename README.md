@@ -6,7 +6,7 @@
 - [Installation](#installation)
 - [Usage](#usage)
 - [Legal Information](#user-content-legal-information)
-- [Further Information](#todo2)
+- [Further Information](#user-content-further-information)
 
 ## Features
 
@@ -107,7 +107,7 @@ After the repositories have been initialized, the main interface will appear, pr
 	"processorConfig" : {						// the configuration for the processor module
 	    "fileDirectory":"/home/projektwhy/filestat2",		// the path to the git repository used for managing local JSON files
 	    "outDirectory":"/home/projektwhy/filestat2/Processed",	// the path ot the git repository folder to store already 
-	    "errorDirectory":"/home/projektwhy/filestat2/Error",
+	    "errorDirectory":"/home/projektwhy/filestat2/Error",	// 
 	    "hostName":"localhost",
 	    "port":1433,
 	    "targetDatabaseName":"why_investigator_stage",
