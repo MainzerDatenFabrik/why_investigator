@@ -1,7 +1,7 @@
 # WHY_INVESTIGATOR 
 > Investigate your SQL Server environment.
 
-## I. Content
+## Content
 - [Features](#features)
 - [Installation](#installation)
 - [Usage](#usage)
@@ -9,6 +9,8 @@
 - [Further Information](#user-content-further-information)
 
 ## Features
+
+> Video coming soon.
 
 The **WHY_INVESTIGATOR** is a fully automated, platform independent tool for documenting **SQL Server** environments. The independency of the underlying operating system makes it especially easy to deploy the tool to any server system desired.
 Once the **WHY_INVESTIGATOR** has been deployed, the tool can be configured to monitor any server in the environment, no matter how many there are.
@@ -18,54 +20,52 @@ The **WHY_INVESTIGATOR** is multi modular and currently consist of three modules
 
 * **SQL Worker**
 
+> Graphic for the SQL Worker coming soon.
+
   The SQL Worker module is used for gathering the information from the sql server environment. It consists of a library containing a multitude of queries concerning the configuration, state, hardware, users, databases, health, changes, etc. of the SQL Server.
   The gathered information for each server is stored locally in small JSON files and paired with a checksum to guarantee data integrity. 
 
 * **Processor**
   
+> Graphic for the Processor coming soon.
+
   The Processor module is used for processing the data gathered by the SQL Worker into a database of choice.
 
-* **FileWatcher**
+* **File Watcher**
 
   > **Currently under development. Coming soon.**
+  > Graphic for the File Watcher coming soon.
 
   The FileWatcher module is used for documenting the operating system environment the WHY_INVESTIGATOR resides in. It is a file crawler, observing a desired directory documenting all changes, new file creations, deletions and updates. It stores the gathered information in the same way the SQL Worker does: small JSON files are created locally and paired with a checksum to guarantee data integrity.
 
 ## Installation
 
-### Requirements
-
-> Coming soon.
-
-- Java 
-- Git
-
 ### Clone
 
-Clone this repository to your local machine using
-- ssh: `git@github.com:MainzerDatenFabrik/why_investigator.git`
-- Https: `https://github.com/MainzerDatenFabrik/why_investigator.git`
+Clone this repository to your local machine by either using https `https://github.com/MainzerDatenFabrik/why_investigator.git` or using ssh `git@github.com:MainzerDatenFabrik/why_investigator.git` and get started.
 
 ### Setup
 
 > Coming soon.
 
-To build the project, naviagte into the previously cloned repository and execute `javac *.java`.
-
 ### Dependencies
-
-> Coming soon.
-
-The following dependencies are required to compile the project:
-- 
--
--
+- Java SDK 11.0.2 or higher
+- JDBC 7.2
+	- mssql-jdbc-7.2.1.jre11.jar
+	- sqljdbc_auth.dll
+- JSON json-20180813.jar
+- Git
+- commons-logging-1.1.2
+- httpclient-4.5.8
+- httpcore-4.4.11
+- jackson-annotations-2.9.8
+- jackson-core-2.9.2
+- jackson-databind-2.9.8
+- lombok
 
 ### Execute
 
 > Coming soon.
-
-To start the previuously compiled application, use the command `java -jar `.
 
 ## Usage
 
