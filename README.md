@@ -33,8 +33,8 @@ The **WHY_INVESTIGATOR** is multi modular and currently consist of three modules
 
 * **File Watcher**
 
-  > **Currently under development. Coming soon.**
-  > Graphic for the File Watcher coming soon.
+> **Currently under development. Coming soon.**
+> Graphic for the File Watcher coming soon.
 
   The FileWatcher module is used for documenting the operating system environment the WHY_INVESTIGATOR resides in. It is a file crawler, observing a desired directory documenting all changes, new file creations, deletions and updates. It stores the gathered information in the same way the SQL Worker does: small JSON files are created locally and paired with a checksum to guarantee data integrity.
 
@@ -42,7 +42,7 @@ The **WHY_INVESTIGATOR** is multi modular and currently consist of three modules
 
 ### Clone
 
-Clone this repository to your local machine by either using https `https://github.com/MainzerDatenFabrik/why_investigator.git` or using ssh `git@github.com:MainzerDatenFabrik/why_investigator.git` and get started.
+Clone this repository to your local machine by either using https `https://github.com/MainzerDatenFabrik/why_investigator.git` or ssh `git@github.com:MainzerDatenFabrik/why_investigator.git` and get started.
 
 ### Setup
 
@@ -70,7 +70,7 @@ Clone this repository to your local machine by either using https `https://githu
 ## Usage
 
 The **WHY_INVESTIGATOR** is controlled by a simple and intuitive console interface. Once the application has been started, the loading screen will appear, initializing the required repositories and updating them.
-After the repositories have been initialized, the main interface will appear, presenting multiple operations to choose from. Any presented command can be typed directly into the command prompt and can be confirmed by hitting enter. Additionally, there are shortcuts available for all commands, indicated by the brackets around a single letter or number (e.g., "[H] Help" -> either "help" or "h").
+After the repositories have been initialized, the main interface will appear, presenting multiple operations to choose from. Any presented command can be typed directly into the command prompt and can be confirmed by hitting enter. Additionally, there are shortcuts available for all commands, indicated by the brackets around a single letter or number (e.g., "[H] Help" -> either "Help", "help" or "h").
 
 ### Config file
 
