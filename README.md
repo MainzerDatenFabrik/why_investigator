@@ -5,8 +5,8 @@
 - [Features](#features)
 - [Installation](#installation)
 - [Usage](#usage)
-- [Legal Information](#legal&#32;information)
-- [Further Information](#further&#32;information)
+- [Legal Information](#user-content-legal-information)
+- [Further Information](#todo2)
 
 ## Features
 
@@ -78,8 +78,8 @@ After the repositories have been initialized, the main interface will appear, pr
 
 ```
 {
-	"sqlWorkerConfig": [                      // the configuration for the sql worker module
-	      {                                   // start of a single host object to observe
+	"sqlWorkerConfig": [                // the configuration for the sql worker module
+	      {                             // start of a single host object to observe
             "host":"examplehost.com",       // the ip address of the server to observe
             "port":1433,                    // the port of the sql server instance (default 1433)
             "frequency":30,                 // the amount of time to sleep between iterations (i.e., execute every 30 minutes)
@@ -104,9 +104,9 @@ After the repositories have been initialized, the main interface will appear, pr
             ]
         }                                   // end of another single host object to observe
 	],                                        // end of the sql worker module config
-	"processorConfig" : {
-	    "fileDirectory":"/home/projektwhy/filestat2",
-	    "outDirectory":"/home/projektwhy/filestat2/Processed",
+	"processorConfig" : {						// the configuration for the processor module
+	    "fileDirectory":"/home/projektwhy/filestat2",		// the path to the git repository used for managing local JSON files
+	    "outDirectory":"/home/projektwhy/filestat2/Processed",	// the path ot the git repository folder to store already 
 	    "errorDirectory":"/home/projektwhy/filestat2/Error",
 	    "hostName":"localhost",
 	    "port":1433,
