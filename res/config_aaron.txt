@@ -86,18 +86,18 @@
         }
 	],
 	"processorConfig" : {
-	    "fileDirectory":"/home/projektwhy/filestat2",
-	    "outDirectory":"/home/projektwhy/filestat2/Processed",
-	    "errorDirectory":"/home/projektwhy/filestat2/Error",
+	    "fileDirectory":"",
+	    "outDirectory":"",
+	    "errorDirectory":"",
 	    "hostName":"",
 	    "port":1433,
-	    "targetDatabaseName":"why_investigator_stage",
+	    "targetDatabaseName":"",
 	    "username":"",
         "password":"",
 	    "sleepTime":10
 	},
 	"fileWatcherConfig" : {
-	    "observedDirectory":"Z:/test/observed",
+	    "observedDirectory":"",
 	    "serverName":"",
 	    "sleepTime":30000
 	},
