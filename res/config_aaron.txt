@@ -1,11 +1,11 @@
 {
 	"sqlWorkerConfig": [
 	    {
-            "host":"qeo003.schackenberg.com",
+            "host":"",
             "port":50549,
             "frequency":30,
-            "username":"whyinvestigator",
-            "password":"Start123",
+            "username":"",
+            "password":"",
             "libraries": [
                 "user",
                 "instance",
@@ -13,11 +13,11 @@
         	]
         },
         {
-            "host":"qeo003.schackenberg.com",
+            "host":"",
             "port":49777,
             "frequency":30,
-            "username":"whyinvestigator",
-            "password":"Start123",
+            "username":"",
+            "password":"",
             "libraries": [
                 "user",
                 "instance",
@@ -25,11 +25,11 @@
             ]
         },
         {
-            "host":"qeo003.schackenberg.com",
+            "host":"",
             "port":49813,
             "frequency":30,
-            "username":"whyinvestigator",
-            "password":"Start123",
+            "username":"",
+            "password":"",
             "libraries": [
                 "user",
                 "instance",
@@ -37,11 +37,11 @@
             ]
         },
         {
-            "host":"qeo003.schackenberg.com",
+            "host":"",
             "port":49811,
             "frequency":30,
-            "username":"whyinvestigator",
-            "password":"Start123",
+            "username":"",
+            "password":"",
             "libraries": [
                 "user",
                 "instance",
@@ -49,11 +49,11 @@
             ]
         },
         {
-            "host":"terminal.schackenberg.com",
+            "host":"",
             "port":1433,
             "frequency":30,
-            "username":"projektwhy",
-            "password":"L37Mainz05",
+            "username":"",
+            "password":"",
             "libraries": [
                 "user",
                 "instance",
@@ -61,11 +61,11 @@
             ]
         },
 	{
-            "host":"localhost",
+            "host":"",
             "port":1433,
             "frequency":30,
-            "username":"whyinvestigator",
-            "password":"Start123",
+            "username":"",
+            "password":"",
             "libraries": [
                 "user",
                 "instance",
@@ -73,11 +73,11 @@
             ]
         },
         {
-           "host":"qeo003.schackenberg.com",
+           "host":"",
      	   "port":8391,
            "frequency":30,
-           "username":"whyinvestigator",
-           "password":"Start123",
+           "username":"",
+           "password":"",
            "libraries": [
                "user",
                "instance",
@@ -89,22 +89,22 @@
 	    "fileDirectory":"/home/projektwhy/filestat2",
 	    "outDirectory":"/home/projektwhy/filestat2/Processed",
 	    "errorDirectory":"/home/projektwhy/filestat2/Error",
-	    "hostName":"localhost",
+	    "hostName":"",
 	    "port":1433,
 	    "targetDatabaseName":"why_investigator_stage",
-	    "username":"sa",
-        "password":"L37Mainz05",
+	    "username":"",
+        "password":"",
 	    "sleepTime":10
 	},
 	"fileWatcherConfig" : {
 	    "observedDirectory":"Z:/test/observed",
-	    "serverName":"qeo003.schackenberg.local",
+	    "serverName":"",
 	    "sleepTime":30000
 	},
 	"gitConfig" : {
-	    "repoCloneURL":"https://aaronsch@bitbucket.org/schackenberg/filestat2.git",
-	    "repoPath":"/home/projektwhy/filestat2",
-	    "repoURL":"https://bitbucket.org/schackenberg/filestat2"
+	    "repoCloneURL":"",
+	    "repoPath":"",
+	    "repoURL":""
 	},
 	"controlConfig": {
 	    "isMaster":true,
@@ -112,13 +112,13 @@
 	    "slackLogging":true,
 	    "slackStatusDelay":3600000,
 	    "slackStatusPeriod":3600000,
-	    "slackWebHookUrl":"https://hooks.slack.com/services/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",
-	    "syncUser":"whyinvestigator",
-	    "syncPass":"Start123",
+	    "slackWebHookUrl":"",
+	    "syncUser":"",
+	    "syncPass":"",
 	},
 	"syncConfig": {
-	    "syncUser":"whyinvestigator",
-	    "syncPass":"Start123",
+	    "syncUser":"",
+	    "syncPass":"",
 	    "sleepTime":10
 	}
 }
