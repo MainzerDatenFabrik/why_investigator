@@ -1,6 +1,6 @@
 {
 	"sqlWorkerConfig": {
-		"qeo009.schackenberg.local": [
+		"": [
 			{
 			    "port":1433,
 				"frequency": 5,
@@ -13,22 +13,22 @@
 		],
 	},
 	"workerConfig" : {
-	    "observedDirectory":"c:/git_temp/filestat",
-	    "outDirectory":"c:/git_temp/filestat/Processed",
-	    "errorDirectory":"c:/git_temp/filestat/Error",
-	    "hostName":"localhost",
+	    "observedDirectory":"",
+	    "outDirectory":"",
+	    "errorDirectory":"",
+	    "hostName":"",
 	    "port":1433,
-	    "targetDatabaseName":"why_investigator",
+	    "targetDatabaseName":"",
 	    "sleepTime":5000
 	},
 	"walkerConfig" : {
-	    "observedDirectory":"C:/export/test",
-	    "serverName":"qeo037.schackenberg.local",
+	    "observedDirectory":"",
+	    "serverName":"",
 	    "sleepTime":30000
 	},
 	"gitConfig" : {
-	    "repoURL":"https://schackenberg@bitbucket.org/schackenberg/filestat.git",
-	    "repoPath":"c:/git_temp/filestat"
+	    "repoURL":"",
+	    "repoPath":""
 	},
 	"controlConfig": {
     	    "isMaster":false,
