@@ -25,8 +25,8 @@ public class Confluence {
 
     // Default values ---------
 
-    private static final String USERNAME = "aaron@schackenberg.com";
-    private static final String PASSWORD = "8y<=b48y<=b47F8y<=b4";
+    private static final String USERNAME = "";
+    private static final String PASSWORD = "";
 
     //private static final String URL = "http://localhost:1990/confluence";
     private static final String URL = "https://conflu.atlassian.net";
