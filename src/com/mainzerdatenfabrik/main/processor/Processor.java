@@ -145,7 +145,6 @@ public class Processor extends ProgramModule {
 
                     //Process every "zip" file that was found
                     if(processZipFile(connection, file)) {
-
                         FileManager.moveFile(file, outDirectory);
                     } else {
                         FileManager.moveFile(file, errorDirectory);
@@ -387,6 +386,14 @@ public class Processor extends ProgramModule {
             // Loop over every JSONObject inside of the JSONArray
             for(int i = 0; i < jsonArray.length(); i++) {
                 Logger.getLogger().info("Processing json object " + (i+1) + " from file " + file.getName());
+                /*
+                if(!isRedundantRow(tableName, jsonArray.getJSONObject(i), datetimeid)) {
+                    System.out.println("Not redundant! Table: " + tableName + ", Row: " + jsonArray.getJSONObject(i).toString());
+                    statement.addBatch(insertJSONObjectIntoTable(jsonArray.getJSONObject(i), tableName, datetimeid, projectHashId));
+                } else {
+                    System.out.println("Skipping row! Table: " + tableName + ", Row: " + jsonArray.getJSONObject(i).toString());
+                }
+                 */
                 statement.addBatch(insertJSONObjectIntoTable(jsonArray.getJSONObject(i), tableName, datetimeid, projectHashId));
 
                 // Send current json Object log to Graylog
@@ -408,6 +415,87 @@ public class Processor extends ProgramModule {
             return false;
         }
         return true;
+    }
+
+    /**
+     * Determines if a specific json object (log file) is redundant information based on the previously inserted values.
+     *
+     * @return true, if the object is redundant information, else false
+     */
+    private boolean isRedundantRow(String tableName, JSONObject object, String datetimeid) {
+        try(Connection connection = UtilsJDBC.establishConnection(hostName, port, targetDatabaseName, sqlUsername, sqlPassword)) {
+
+            if(connection == null) {
+                throw new IllegalStateException("Unable to establish a connection to " + hostName + ":" + port + "/" + targetDatabaseName + ".");
+            }
+
+            String sql = createRedundancyQuery(tableName, object, datetimeid);
+
+            System.out.println("RedundancyQuery (" + tableName + "): " + sql);
+
+            try(Statement statement = connection.createStatement();
+                ResultSet resultSet = statement.executeQuery(sql)) {
+                return resultSet.isBeforeFirst();
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return false;
+    }
+
+    /**
+     * Creates a t-sql statement based on a specific table name, a datetimeid and a json object. This statement is used
+     * to determine if a specific log row if redundant or not.
+     *
+     * @param tableName  the name of the table to create the statement for
+     * @param object     the specific object the statement is based on
+     * @param datetimeid the datetimeid of the object
+     *
+     * @return the create redundancy statement
+     */
+    private String createRedundancyQuery(String tableName, JSONObject object, String datetimeid) {
+        StringBuilder queryBuilder = new StringBuilder();
+        queryBuilder.append("SELECT * FROM stage.").append(tableName).append(" WHERE datetimeid < ");
+        queryBuilder.append(datetimeid);
+
+        Iterator<String> iterator = object.keys();
+
+        List<String> blackList = new ArrayList<String>();
+        blackList.add("datetimeid");
+        blackList.add("Timestamp");
+        blackList.add("projectHashId");
+
+        while(iterator.hasNext()) {
+            String key = iterator.next();
+
+            if(!blackList.contains(key)) {
+                queryBuilder.append(" AND ").append(substituteKeyName(key)).append(getValueString(object.get(key)));
+            }
+        }
+        return queryBuilder.append(";").toString();
+    }
+
+    /**
+     * Creates a value String for a specific object. A value string is basically the object in the format required for
+     * t-sql queries (e.g., Max Mustermann -> 'Max Mustermann').
+     *
+     * @param object the specific object to create the value string of
+     *
+     * @return the value string create from the specified object
+     */
+    private String getValueString(Object object) {
+
+        if(object == null) {
+            return " IS NULL ";
+        }
+
+        if(object instanceof String) {
+            return " = \'" + object + "\' ";
+        } else if(object instanceof Boolean) {
+            return " = " + (((Boolean) object) ? "1 " : "0 ");
+        } else {
+            return " = " + object + " ";
+        }
     }
 
     /**
