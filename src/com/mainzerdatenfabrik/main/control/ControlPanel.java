@@ -2,6 +2,7 @@ package com.mainzerdatenfabrik.main.control;
 
 import com.mainzerdatenfabrik.main.file.FileManager;
 import com.mainzerdatenfabrik.main.git.Git;
+import com.mainzerdatenfabrik.main.logging.graylog.Graylog;
 import com.mainzerdatenfabrik.main.logging.slack.Slack;
 import com.mainzerdatenfabrik.main.network.RemoteController;
 import com.mainzerdatenfabrik.main.network.RemoteInputReceiver;
@@ -862,6 +863,7 @@ public class ControlPanel {
                 UtilsCP.w22 + UtilsCP.w23 + UtilsCP.w24);
 
         Git.initialize();
+        Graylog.initialize();
     }
 
     /**

@@ -1,5 +1,6 @@
 package com.mainzerdatenfabrik.main.logging.graylog;
 
+import com.mainzerdatenfabrik.main.file.FileManager;
 import com.mainzerdatenfabrik.main.logging.Logger;
 import org.json.JSONObject;
 
@@ -18,7 +19,7 @@ import java.util.logging.Level;
 public class Graylog {
 
     // The ip of the graylog server
-    private static final String IP_ADDRESS = "";
+    private static  String ip_address = "";
 
     private static final int PORT_GENERAL = 9001;
 
@@ -30,6 +31,16 @@ public class Graylog {
     private static final int PORT_HARDWARE_INFO = 9006;
     private static final int PORT_SYS_ADMINS = 9007;
     private static final int PORT_CONNECTION_ERRORS = 9008;
+
+    public static void initialize() {
+        Logger.getLogger().config("Loading config for Graylog.");
+
+        JSONObject graylogConfig = FileManager.getConfigObject("graylogConfig");
+
+        ip_address = graylogConfig.getString("ip_address");
+
+        Logger.getLogger().config("Finished loading config for Gaylog.");
+    }
 
     /**
      * Sends a specific json object in string format to a specific graylog input node based on the name of the table
@@ -147,7 +158,7 @@ public class Graylog {
     }
 
     /**
-     * Sends a specific json object in string format to the Graylog server specified by {@link IP_ADDRESS} based on
+     * Sends a specific json object in string format to the Graylog server specified by {@code ip_address} based on
      * a specific version string, a host name and a short message (description of the message) to create a gelf
      * object from the specified json object string.
      *
@@ -160,7 +171,7 @@ public class Graylog {
      * @return true, if the message was sent successfully, else false
      */
     private static boolean send(int port, String jsonString, String version, String host, String shortMessage) {
-        try(Socket socket = new Socket(InetAddress.getByName(IP_ADDRESS), port);
+        try(Socket socket = new Socket(InetAddress.getByName(ip_address), port);
             OutputStream outputStream = new DataOutputStream(socket.getOutputStream())) {
 
             PrintWriter writer = new PrintWriter(outputStream);
@@ -169,7 +180,7 @@ public class Graylog {
 
             return true;
         } catch (IOException e) {
-            Logger.getLogger().severe("Unable to establish a tcp connection to " + IP_ADDRESS + ":" + port);
+            Logger.getLogger().severe("Unable to establish a tcp connection to " + ip_address + ":" + port);
             Logger.getLogger().log(Level.SEVERE, e.getMessage(), e);
         }
         return false;
