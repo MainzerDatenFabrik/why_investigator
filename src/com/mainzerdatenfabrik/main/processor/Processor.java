@@ -5,6 +5,7 @@ import com.mainzerdatenfabrik.main.git.Git;
 import com.mainzerdatenfabrik.main.json.JSONManager;
 import com.mainzerdatenfabrik.main.library.CheckLibrary;
 import com.mainzerdatenfabrik.main.logging.Logger;
+import com.mainzerdatenfabrik.main.logging.graylog.Graylog;
 import com.mainzerdatenfabrik.main.logging.slack.Slack;
 import com.mainzerdatenfabrik.main.module.ProgramModule;
 import com.mainzerdatenfabrik.main.utils.UtilsJDBC;
@@ -360,8 +361,8 @@ public class Processor extends ProgramModule {
     /**
      * Executes an insert statement based on a specific tableName and a specific file containing the date to insert.
      *
-     * @param file the specific table name
-     * @param tableName the specific file
+     * @param file the specific file
+     * @param tableName the specific table name
      *
      * @return true, if successful, false if not
      */
@@ -387,6 +388,10 @@ public class Processor extends ProgramModule {
             for(int i = 0; i < jsonArray.length(); i++) {
                 Logger.getLogger().info("Processing json object " + (i+1) + " from file " + file.getName());
                 statement.addBatch(insertJSONObjectIntoTable(jsonArray.getJSONObject(i), tableName, datetimeid, projectHashId));
+
+                // Send current json Object log to Graylog
+                Logger.getLogger().info("Sending json object " + (i+1) + " from file " + file.getName() + " to Graylog.");
+                Graylog.sendLog(tableName, jsonArray.getJSONObject(i).toString());
             }
 
             // Execute the batch and receive the number of rows changed for every statement contained in the batch
