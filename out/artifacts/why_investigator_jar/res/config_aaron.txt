@@ -1,0 +1,124 @@
+{
+	"sqlWorkerConfig": [
+	    {
+            "host":"",
+            "port":50549,
+            "frequency":30,
+            "username":"",
+            "password":"",
+            "libraries": [
+                "user",
+                "instance",
+                "database"
+        	]
+        },
+        {
+            "host":"",
+            "port":49777,
+            "frequency":30,
+            "username":"",
+            "password":"",
+            "libraries": [
+                "user",
+                "instance",
+                "database"
+            ]
+        },
+        {
+            "host":"",
+            "port":49813,
+            "frequency":30,
+            "username":"",
+            "password":"",
+            "libraries": [
+                "user",
+                "instance",
+                "database"
+            ]
+        },
+        {
+            "host":"",
+            "port":49811,
+            "frequency":30,
+            "username":"",
+            "password":"",
+            "libraries": [
+                "user",
+                "instance",
+                "database"
+            ]
+        },
+        {
+            "host":"",
+            "port":1433,
+            "frequency":30,
+            "username":"",
+            "password":"",
+            "libraries": [
+                "user",
+                "instance",
+                "database"
+            ]
+        },
+	{
+            "host":"",
+            "port":1433,
+            "frequency":30,
+            "username":"",
+            "password":"",
+            "libraries": [
+                "user",
+                "instance",
+                "database"
+            ]
+        },
+        {
+           "host":"",
+     	   "port":8391,
+           "frequency":30,
+           "username":"",
+           "password":"",
+           "libraries": [
+               "user",
+               "instance",
+               "database"
+             ]
+        }
+	],
+	"processorConfig" : {
+	    "fileDirectory":"",
+	    "outDirectory":"",
+	    "errorDirectory":"",
+	    "hostName":"",
+	    "port":1433,
+	    "targetDatabaseName":"",
+	    "username":"",
+        "password":"",
+	    "sleepTime":10
+	},
+	"fileWatcherConfig" : {
+	    "observedDirectory":"",
+	    "serverName":"",
+	    "sleepTime":30000
+	},
+	"gitConfig" : {
+	    "repoCloneURL":"",
+	    "repoPath":"",
+	    "repoURL":""
+	},
+	"controlConfig": {
+	    "isMaster":true,
+	    "port":8787,
+	    "slackLogging":true,
+	    "slackStatusDelay":3600000,
+	    "slackStatusPeriod":3600000,
+	    "slackWebHookUrl":"",
+	    "syncUser":"",
+	    "syncPass":"",
+	},
+	"syncConfig": {
+	    "syncUser":"",
+	    "syncPass":"",
+	    "sleepTime":10
+	}
+}
