@@ -863,7 +863,7 @@ public class ControlPanel {
                 UtilsCP.w22 + UtilsCP.w23 + UtilsCP.w24);
 
         Git.initialize();
-        Graylog.initialize();
+        //Graylog.initialize();
     }
 
     /**
