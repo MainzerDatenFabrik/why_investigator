@@ -21,6 +21,62 @@
 #                                             DATABASE Check Queries                                                   #
 #                                                                                                                      #
 ########################################################################################################################
+DATABASE Logical IO
+10.50.2500.0
+false
+database
+SET TRANSACTION ISOLATION LEVEL READ UNCOMMITTED;
+DECLARE @Domain NVARCHAR(100);
+EXEC master.dbo.xp_regread 'HKEY_LOCAL_MACHINE', 'SYSTEM\CurrentControlSet\services\Tcpip\Parameters', N'Domain',@Domain OUTPUT;
+WITH DB_CPU_Stats
+AS
+(
+    SELECT DatabaseID, isnull(DB_Name(DatabaseID),case DatabaseID when 32767 then 'Internal ResourceDB' else CONVERT(varchar(255),DatabaseID)end) AS [DatabaseName],
+      SUM(total_worker_time) AS [CPU_Time_Ms],
+      SUM(total_logical_reads)  AS [Logical_Reads],
+      SUM(total_logical_writes)  AS [Logical_Writes],
+      SUM(total_logical_reads+total_logical_writes)  AS [Logical_IO],
+      SUM(total_physical_reads)  AS [Physical_Reads],
+      SUM(total_elapsed_time)  AS [Duration_MicroSec],
+      SUM(total_clr_time)  AS [CLR_Time_MicroSec],
+      SUM(total_rows)  AS [Rows_Returned],
+      SUM(execution_count)  AS [Execution_Count],
+      count(*) 'Plan_Count'
+    FROM sys.dm_exec_query_stats AS qs
+    CROSS APPLY (
+                    SELECT CONVERT(int, value) AS [DatabaseID]
+                  FROM sys.dm_exec_plan_attributes(qs.plan_handle)
+                  WHERE attribute = N'dbid') AS F_DB
+    GROUP BY DatabaseID
+)
+SELECT Cast(SERVERPROPERTY('MachineName') as nvarchar) + '.' + @Domain AS FQDN, @@SERVERNAME AS ServerName, ROW_NUMBER() OVER(ORDER BY [CPU_Time_Ms] DESC) AS [Rank_CPU],
+       DatabaseName,
+       [CPU_Time_Hr] = convert(decimal(15,2),([CPU_Time_Ms]/1000.0)/3600) ,
+        CAST([CPU_Time_Ms] * 1.0 / SUM(case [CPU_Time_Ms] when 0 then 1 else [CPU_Time_Ms] end) OVER() * 100.0 AS DECIMAL(5, 2)) AS [CPU_Percent],
+       [Duration_Hr] = convert(decimal(15,2),([Duration_MicroSec]/1000000.0)/3600) ,
+       CAST([Duration_MicroSec] * 1.0 / SUM(case [Duration_MicroSec] when 0 then 1 else [Duration_MicroSec] end) OVER() * 100.0 AS DECIMAL(5, 2)) AS [Duration_Percent],
+       [Logical_Reads],
+        CAST([Logical_Reads] * 1.0 / SUM(case [Logical_Reads] when 0 then 1 else [Logical_Reads] end) OVER() * 100.0 AS DECIMAL(5, 2)) AS [Logical_Reads_Percent],
+       [Rows_Returned],
+        CAST([Rows_Returned] * 1.0 / SUM(case [Rows_Returned] when 0 then 1 else [Rows_Returned] end) OVER() * 100.0 AS DECIMAL(5, 2)) AS [Rows_Returned_Percent],
+       [Reads_Per_Row_Returned] = [Logical_Reads]/(case [Rows_Returned] when 0 then 1 else [Rows_Returned] end),
+       [Execution_Count],
+        CAST([Execution_Count] * 1.0 / SUM(case [Execution_Count]  when 0 then 1 else [Execution_Count] end) OVER() * 100.0 AS DECIMAL(5, 2)) AS [Execution_Count_Percent],
+       [Physical_Reads],
+       CAST([Physical_Reads] * 1.0 / SUM(case [Physical_Reads] when 0 then 1 else [Physical_Reads] end ) OVER() * 100.0 AS DECIMAL(5, 2)) AS [Physcal_Reads_Percent],
+       [Logical_Writes],
+        CAST([Logical_Writes] * 1.0 / SUM(case [Logical_Writes] when 0 then 1 else [Logical_Writes] end) OVER() * 100.0 AS DECIMAL(5, 2)) AS [Logical_Writes_Percent],
+       [Logical_IO],
+        CAST([Logical_IO] * 1.0 / SUM(case [Logical_IO] when 0 then 1 else [Logical_IO] end) OVER() * 100.0 AS DECIMAL(5, 2)) AS [Logical_IO_Percent],
+       [CLR_Time_MicroSec],
+       CAST([CLR_Time_MicroSec] * 1.0 / SUM(case [CLR_Time_MicroSec] when 0 then 1 else [CLR_Time_MicroSec] end ) OVER() * 100.0 AS DECIMAL(5, 2)) AS [CLR_Time_Percent],
+       [CPU_Time_Ms],[CPU_Time_Ms]/1000 [CPU_Time_Sec],
+       [Duration_MicroSec],[Duration_MicroSec]/1000000 [Duration_Sec]
+FROM DB_CPU_Stats
+WHERE DatabaseID > 4 -- system databases
+AND DatabaseID <> 32767 -- ResourceDB
+ORDER BY [Rank_CPU] OPTION (RECOMPILE);
+
 DATABASE File And Drive Info
 10.50.2500.0
 false
@@ -701,6 +757,43 @@ ORDER BY [UserName], [Database Name];
 #                                             INSTANCE Check Queries                                                   #
 #                                                                                                                      #
 ########################################################################################################################
+INSTANCE CPU Utilization
+10.50.2500.0
+false
+instance
+DECLARE @Domain NVARCHAR(100)
+EXEC master.dbo.xp_regread 'HKEY_LOCAL_MACHINE', 'SYSTEM\CurrentControlSet\services\Tcpip\Parameters', N'Domain',@Domain OUTPUT;
+WITH SQLProcessCPU
+AS(
+   SELECT TOP(30) SQLProcessUtilization AS 'CPU_Usage', ROW_NUMBER() OVER(ORDER BY (SELECT NULL)) AS 'row_number'
+   FROM (
+         SELECT
+           record.value('(./Record/@id)[1]', 'int') AS record_id,
+           record.value('(./Record/SchedulerMonitorEvent/SystemHealth/SystemIdle)[1]', 'int') AS [SystemIdle],
+           record.value('(./Record/SchedulerMonitorEvent/SystemHealth/ProcessUtilization)[1]', 'int') AS [SQLProcessUtilization],
+           [timestamp]
+         FROM (
+              SELECT [timestamp], CONVERT(xml, record) AS [record]
+              FROM sys.dm_os_ring_buffers
+              WHERE ring_buffer_type = N'RING_BUFFER_SCHEDULER_MONITOR'
+              AND record LIKE '%<SystemHealth>%'
+              ) AS x
+        ) AS y
+)
+SELECT
+   Cast(SERVERPROPERTY('MachineName') as nvarchar) + '.' + @Domain AS FQDN, @@SERVERNAME AS ServerName,
+   (SELECT value_in_use FROM sys.configurations WHERE name like '%max server memory%') AS 'Max Server Memory',
+   (SELECT physical_memory_in_use_kb/1024 FROM sys.dm_os_process_memory) AS 'SQL Server Memory Usage (MB)',
+   (SELECT total_physical_memory_kb/1024 FROM sys.dm_os_sys_memory) AS 'Physical Memory (MB)',
+   (SELECT available_physical_memory_kb/1024 FROM sys.dm_os_sys_memory) AS 'Available Memory (MB)',
+   (SELECT system_memory_state_desc FROM sys.dm_os_sys_memory) AS 'System Memory State',
+   (SELECT [cntr_value] FROM sys.dm_os_performance_counters WHERE [object_name] LIKE '%Manager%' AND [counter_name] = 'Page life expectancy') AS 'Page Life Expectancy',
+   (SELECT AVG(CPU_Usage) FROM SQLProcessCPU WHERE row_number BETWEEN 1 AND 30) AS 'SQLProcessUtilization30',
+   (SELECT AVG(CPU_Usage) FROM SQLProcessCPU WHERE row_number BETWEEN 1 AND 15) AS 'SQLProcessUtilization15',
+   (SELECT AVG(CPU_Usage) FROM SQLProcessCPU WHERE row_number BETWEEN 1 AND 10) AS 'SQLProcessUtilization10',
+   (SELECT AVG(CPU_Usage) FROM SQLProcessCPU WHERE row_number BETWEEN 1 AND 5)  AS 'SQLProcessUtilization5',
+   GETDATE() AS 'Data Sample Timestamp'
+
 ########################################################################################################################
 #                                                                                                                      #
 #                                 SQL Server 2012 Diagnostic Information Queries                                       #
