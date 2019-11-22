@@ -436,7 +436,7 @@ public class Processor extends ProgramModule {
 
             String sql = createRedundancyQuery(tableName, object, datetimeid);
 
-            System.out.println("RedundancyQuery (" + tableName + "): " + sql);
+            //System.out.println("RedundancyQuery (" + tableName + "): " + sql);
 
             try(Statement statement = connection.createStatement();
                 ResultSet resultSet = statement.executeQuery(sql)) {
