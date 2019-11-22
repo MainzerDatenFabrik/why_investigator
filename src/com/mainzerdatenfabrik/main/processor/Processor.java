@@ -398,7 +398,7 @@ public class Processor extends ProgramModule {
 
                 // Send current json Object log to Graylog
                 Logger.getLogger().info("Sending json object " + (i+1) + " from file " + file.getName() + " to Graylog.");
-                Graylog.sendLog(tableName, jsonArray.getJSONObject(i).toString());
+                //Graylog.sendLog(tableName, jsonArray.getJSONObject(i).toString());
             }
 
             // Execute the batch and receive the number of rows changed for every statement contained in the batch
