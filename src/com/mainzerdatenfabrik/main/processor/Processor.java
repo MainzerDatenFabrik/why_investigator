@@ -428,13 +428,14 @@ public class Processor extends ProgramModule {
      * @return true, if the object is redundant information, else false
      */
     private boolean isRedundantRow(String tableName, JSONObject object, String datetimeid) {
+        String sql = "";
         try(Connection connection = UtilsJDBC.establishConnection(hostName, port, targetDatabaseName, sqlUsername, sqlPassword)) {
 
             if(connection == null) {
                 throw new IllegalStateException("Unable to establish a connection to " + hostName + ":" + port + "/" + targetDatabaseName + ".");
             }
 
-            String sql = createRedundancyQuery(tableName, object, datetimeid);
+            sql = createRedundancyQuery(tableName, object, datetimeid);
 
             //System.out.println("RedundancyQuery (" + tableName + "): " + sql);
 
@@ -443,7 +444,8 @@ public class Processor extends ProgramModule {
                 return resultSet.isBeforeFirst();
             }
         } catch (SQLException e) {
-            e.printStackTrace();
+            Logger.getLogger().severe("Exception occurred while checking row redundancy. Statement: " + sql);
+            Logger.getLogger().log(Level.SEVERE, e.getMessage(), e);
         }
         return false;
     }
