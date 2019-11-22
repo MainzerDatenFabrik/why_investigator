@@ -122,7 +122,7 @@ public class ControlPanel {
 
             String name = "SQLWorker";
             String status = "Status 1";
-            UtilsCP.m05 = getModuleLabel(name, watcherRunning);
+            UtilsCP.m05 = getModuleLabel(name, workerRunning);
             //
             name = "FileWatcher";
             status = "Status 2";
@@ -131,7 +131,7 @@ public class ControlPanel {
 
             name = "Processor";
             status = "Status 3";
-            UtilsCP.m09 = getModuleLabel(name, synchronizerRunning);
+            UtilsCP.m09 = getModuleLabel(name, processorRunning);
             //UtilsCP.m12 = getModuleStatusLabel(name, status);
 
             // print main screen
