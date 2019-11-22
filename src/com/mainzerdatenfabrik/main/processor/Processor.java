@@ -386,19 +386,24 @@ public class Processor extends ProgramModule {
             // Loop over every JSONObject inside of the JSONArray
             for(int i = 0; i < jsonArray.length(); i++) {
                 Logger.getLogger().info("Processing json object " + (i+1) + " from file " + file.getName());
-                /*
-                if(!isRedundantRow(tableName, jsonArray.getJSONObject(i), datetimeid)) {
-                    System.out.println("Not redundant! Table: " + tableName + ", Row: " + jsonArray.getJSONObject(i).toString());
+
+                //Todo: This will be removed after the rework of import
+                try {
+                    if(!isRedundantRow(tableName, jsonArray.getJSONObject(i), datetimeid)) {
+                        //System.out.println("Not redundant! Table: " + tableName + ", Row: " + jsonArray.getJSONObject(i).toString());
+                        statement.addBatch(insertJSONObjectIntoTable(jsonArray.getJSONObject(i), tableName, datetimeid, projectHashId));
+                    } else {
+                        Logger.getLogger().warning("Skipping redundant table row for: " + tableName + ", ROW: " + jsonArray.getJSONObject(i).toString());
+                    }
+                } catch(Exception e) {
                     statement.addBatch(insertJSONObjectIntoTable(jsonArray.getJSONObject(i), tableName, datetimeid, projectHashId));
-                } else {
-                    System.out.println("Skipping row! Table: " + tableName + ", Row: " + jsonArray.getJSONObject(i).toString());
                 }
-                 */
-                statement.addBatch(insertJSONObjectIntoTable(jsonArray.getJSONObject(i), tableName, datetimeid, projectHashId));
 
                 // Send current json Object log to Graylog
-                Logger.getLogger().info("Sending json object " + (i+1) + " from file " + file.getName() + " to Graylog.");
-                //Graylog.sendLog(tableName, jsonArray.getJSONObject(i).toString());
+                if(Graylog.isEnabled()) {
+                    Logger.getLogger().info("Sending json object " + (i+1) + " from file " + file.getName() + " to Graylog.");
+                    Graylog.sendLog(tableName, jsonArray.getJSONObject(i).toString());
+                }
             }
 
             // Execute the batch and receive the number of rows changed for every statement contained in the batch

@@ -120,5 +120,9 @@
 	    "syncUser":"",
 	    "syncPass":"",
 	    "sleepTime":10
+	},
+	"graylogConfig":{
+	    "ip_address":""
+	    "enabled":true
 	}
 }
