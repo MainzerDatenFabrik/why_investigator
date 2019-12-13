@@ -547,7 +547,7 @@ CREATE TABLE [dbo].[userpermission]
     [objectname] [VARCHAR](200) NULL,
     [columname] [VARCHAR](200) NULL,
     [databaseName] [VARCHAR](2000) NULL,
-    [fqdn] [VARCHAR](2000) NULL,
+    [FQDN] [VARCHAR](2000) NULL,
     [create_date] DATETIME,
     [modify_date] DATETIME,
     [portListen] VARCHAR(2000),
@@ -584,7 +584,7 @@ BEGIN
            ,[objectname]
            ,[columname]
 		   ,[databaseName]
-		   ,[fqdn]
+		   ,[FQDN]
 		   ,[create_date]
 		   ,[modify_date])
 SELECT
