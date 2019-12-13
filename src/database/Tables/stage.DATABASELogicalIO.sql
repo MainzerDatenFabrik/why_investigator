@@ -1,0 +1,33 @@
+CREATE TABLE [stage].[DATABASELogicalIO]
+(
+[datetimeid] [bigint] NULL,
+[projectHashId] [nvarchar] (1000) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
+[Execution_Count] [int] NULL,
+[Logical_IO] [int] NULL,
+[Reads_Per_Row_Returned] [int] NULL,
+[Rows_Returned] [int] NULL,
+[Duration_MicroSec] [int] NULL,
+[Logical_Reads_Percent] [nvarchar] (4000) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
+[Logical_Writes_Percent] [nvarchar] (4000) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
+[Duration_Sec] [int] NULL,
+[Duration_Percent] [nvarchar] (4000) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
+[Rows_Returned_Percent] [nvarchar] (4000) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
+[Logical_IO_Percent] [nvarchar] (4000) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
+[CPU_Time_Ms] [int] NULL,
+[Physical_Reads] [int] NULL,
+[Execution_Count_Percent] [nvarchar] (4000) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
+[Physcal_Reads_Percent] [nvarchar] (4000) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
+[DatabaseName] [nvarchar] (4000) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
+[CLR_Time_MicroSec] [int] NULL,
+[Logical_Reads] [int] NULL,
+[CLR_Time_Percent] [int] NULL,
+[FQDN] [nvarchar] (4000) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
+[Rank_CPU] [int] NULL,
+[Logical_Writes] [int] NULL,
+[ServerName] [nvarchar] (4000) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
+[CPU_Percent] [nvarchar] (4000) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
+[CPU_Time_Hr] [nvarchar] (4000) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
+[CPU_Time_Sec] [int] NULL,
+[Duration_Hr] [int] NULL
+) ON [PRIMARY]
+GO
