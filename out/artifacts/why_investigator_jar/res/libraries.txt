@@ -547,7 +547,7 @@ CREATE TABLE [dbo].[userpermission]
     [objectname] [VARCHAR](200) NULL,
     [columname] [VARCHAR](200) NULL,
     [databaseName] [VARCHAR](2000) NULL,
-    [fqdn] [VARCHAR](2000) NULL,
+    [FQDN] [VARCHAR](2000) NULL,
     [create_date] DATETIME,
     [modify_date] DATETIME,
     [portListen] VARCHAR(2000),
@@ -584,7 +584,7 @@ BEGIN
            ,[objectname]
            ,[columname]
 		   ,[databaseName]
-		   ,[fqdn]
+		   ,[FQDN]
 		   ,[create_date]
 		   ,[modify_date])
 SELECT
@@ -722,7 +722,7 @@ USE [tempdb];
 UPDATE [dbo].[userpermission]
 SET [portListen] =
     (
-        SELECT DISTINCT
+        SELECT DISTINCT TOP(1)
                local_tcp_port
         FROM sys.dm_exec_connections
         WHERE local_tcp_port IS NOT NULL
@@ -737,7 +737,7 @@ USER Server Principals
 false
 user
 DECLARE @port NVARCHAR(100)
-SET @port = (SELECT DISTINCT local_tcp_port FROM sys.dm_exec_connections WHERE local_tcp_port IS NOT NULL)
+SET @port = (SELECT DISTINCT TOP(1) local_tcp_port FROM sys.dm_exec_connections WHERE local_tcp_port IS NOT NULL)
 DECLARE @Domain NVARCHAR(100)
 EXEC master.dbo.xp_regread 'HKEY_LOCAL_MACHINE', 'SYSTEM\CurrentControlSet\services\Tcpip\Parameters', N'Domain',@Domain OUTPUT
 SELECT @@SERVERNAME AS ServerName, CAST(SERVERPROPERTY('MachineName') as nvarchar) + '.' + @Domain AS FQDN, @port AS Local_tcp_port,
@@ -821,7 +821,7 @@ INSERT #errorLog ([LogDate], [ProcessInfo], [Text]) EXEC sys.xp_readerrorlog 0, 
 DECLARE @Domain NVARCHAR(100)
 EXEC master.dbo.xp_regread 'HKEY_LOCAL_MACHINE', 'SYSTEM\CurrentControlSet\services\Tcpip\Parameters', N'Domain',@Domain OUTPUT
 DECLARE @port NVARCHAR(100)
-SET @port = (SELECT DISTINCT local_tcp_port FROM sys.dm_exec_connections WHERE local_tcp_port IS NOT NULL)
+SET @port = (SELECT DISTINCT TOP(1) local_tcp_port FROM sys.dm_exec_connections WHERE local_tcp_port IS NOT NULL)
 SELECT @port AS local_tcp_port, @@SERVERNAME AS ServerName, Cast(SERVERPROPERTY('MachineName') as nvarchar) + '.' + @Domain AS FQDN, * from #errorLog;
 DROP TABLE #errorLog
 
@@ -881,7 +881,7 @@ CREATE TABLE #errorLog
  )
 INSERT #errorLog ([LogDate], [ProcessInfo], [Text]) EXEC sys.xp_readerrorlog 0, 1, N'Database Instant File Initialization';
 DECLARE @port NVARCHAR(100)
-SET @port = (SELECT DISTINCT local_tcp_port FROM sys.dm_exec_connections WHERE local_tcp_port IS NOT NULL)
+SET @port = (SELECT DISTINCT TOP(1) local_tcp_port FROM sys.dm_exec_connections WHERE local_tcp_port IS NOT NULL)
 DECLARE @Domain NVARCHAR(100)
 EXEC master.dbo.xp_regread 'HKEY_LOCAL_MACHINE', 'SYSTEM\CurrentControlSet\services\Tcpip\Parameters', N'Domain',@Domain OUTPUT
 SELECT @port AS Local_tcp_port, @@SERVERNAME AS ServerName, Cast(SERVERPROPERTY('MachineName') as nvarchar) + '.' + @Domain AS FQDN, * from #errorLog;
@@ -999,7 +999,7 @@ instance
 DECLARE @Domain NVARCHAR(100)
 EXEC master.dbo.xp_regread 'HKEY_LOCAL_MACHINE', 'SYSTEM\CurrentControlSet\services\Tcpip\Parameters', N'Domain',@Domain OUTPUT
 DECLARE @port NVARCHAR(100)
-SET @port = (SELECT DISTINCT local_tcp_port FROM sys.dm_exec_connections WHERE local_tcp_port IS NOT NULL)
+SET @port = (SELECT DISTINCT TOP(1) local_tcp_port FROM sys.dm_exec_connections WHERE local_tcp_port IS NOT NULL)
 SELECT @port AS Local_tcp_port, @@SERVERNAME AS ServerName, Cast(SERVERPROPERTY('MachineName') as nvarchar) + '.' + @Domain AS FQDN , cpu_count AS [Logical CPU Count], scheduler_count,
        hyperthread_ratio AS [Hyperthread Ratio],
        cpu_count/hyperthread_ratio AS [Physical CPU Count], 
@@ -1026,7 +1026,7 @@ INSERT #errorLog ([LogDate], [ProcessInfo], [Text]) EXEC sys.xp_readerrorlog 0, 
 DECLARE @Domain NVARCHAR(100)
 EXEC master.dbo.xp_regread 'HKEY_LOCAL_MACHINE', 'SYSTEM\CurrentControlSet\services\Tcpip\Parameters', N'Domain',@Domain OUTPUT
 DECLARE @port NVARCHAR(100)
-SET @port = (SELECT DISTINCT local_tcp_port FROM sys.dm_exec_connections WHERE local_tcp_port IS NOT NULL)
+SET @port = (SELECT DISTINCT TOP(1) local_tcp_port FROM sys.dm_exec_connections WHERE local_tcp_port IS NOT NULL)
 SELECT @port as Local_tcp_port, @@SERVERNAME AS ServerName, CAST(SERVERPROPERTY('MachineName') as nvarchar) + '.' + @Domain AS FQDN , * from #errorLog;
 DROP TABLE #errorLog
 
