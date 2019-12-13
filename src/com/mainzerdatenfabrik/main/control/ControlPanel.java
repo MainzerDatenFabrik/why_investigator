@@ -106,6 +106,12 @@ public class ControlPanel {
         // is automatically closed on exit by the JVM without blocking the program from termination.
         inputThread = new Thread(() -> {
             showWelcomeScreen();
+            // Todo: Remove this, it is just temporary
+            workerRunning = true;
+            (worker = new SQLWorker()).start();
+            processorRunning = true;
+            (processor = new Processor()).start();
+            // Todo
             showMainScreen(true);
         });
         inputThread.setDaemon(true);

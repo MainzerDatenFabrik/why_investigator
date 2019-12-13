@@ -460,7 +460,13 @@ public class Processor extends ProgramModule {
                 hexString.append(hex);
             }
 
-            String fqdn = object.getString("FQDN");
+            String fqdn = "";
+            // Todo: Remove this it is just a temporary fix for the fqdn problem with USER Users Info
+            if(object.has("FQDN")) {
+                fqdn = object.getString("FQDN");
+            } else  if(object.has("fqdn")) {
+                fqdn = object.getString("fqdn");
+            }
             String sql = "  SELECT TOP(1) rowHash FROM stage." + tableName + " WHERE datetimeid < " + datetimeid + " AND FQDN = '" + fqdn + "' ORDER BY datetimeid DESC";
 
             try(Statement statement = connection.createStatement();
