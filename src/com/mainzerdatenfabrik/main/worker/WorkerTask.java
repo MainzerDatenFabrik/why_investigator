@@ -128,11 +128,14 @@ public class WorkerTask implements Runnable {
             return;
         }
 
+        String currentCheck = "";
+
         for(Check check : checks) {
             String query = check.getQuery(serverVersion);
+            currentCheck= check.getName();
 
             if(query != null) {
-                Logger.getLogger().info(Thread.currentThread().getName() + " executing check: " + check.getName() + ".");
+                Logger.getLogger().info(Thread.currentThread().getName() + " executing check: " + currentCheck + ".");
                 try {
                     Statement statement = connection.createStatement();
                     processQueryResults(statement.executeQuery(query), check, timestamp,
@@ -144,14 +147,14 @@ public class WorkerTask implements Runnable {
                     Slack.sendMessage("*SQLWorker*: SQL exception occurred: *" + e.getMessage() + "*.");
                 }
             } else {
-                Logger.getLogger().warning("Check " + check.getName() + " is not compatible with version " + serverVersion + "!");
+                Logger.getLogger().warning("Check " + currentCheck + " is not compatible with version " + serverVersion + "!");
             }
         }
 
         try {
             connection.close();
         } catch (SQLException e) {
-            Logger.getLogger().info("Exception occurred while performing check.");
+            Logger.getLogger().info("Exception occurred while performing check " + currentCheck + ".");
             Logger.getLogger().log(Level.SEVERE, e.getMessage(), e);
         }
     }
