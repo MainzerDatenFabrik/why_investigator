@@ -461,7 +461,7 @@ public class Processor extends ProgramModule {
             }
 
             String fqdn = object.getString("FQDN");
-            String sql = "  SELECT TOP(1) rowHash FROM " + tableName + " WHERE datetimeid < " + datetimeid + " AND FQDN = '" + fqdn + "' ORDER BY datetimeid DESC";
+            String sql = "  SELECT TOP(1) rowHash FROM stage." + tableName + " WHERE datetimeid < " + datetimeid + " AND FQDN = '" + fqdn + "' ORDER BY datetimeid DESC";
 
             try(Statement statement = connection.createStatement();
                 ResultSet resultSet = statement.executeQuery(sql)) {
