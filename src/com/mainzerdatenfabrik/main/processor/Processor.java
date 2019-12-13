@@ -440,6 +440,11 @@ public class Processor extends ProgramModule {
      *         "NO_HASH" if no hash for the current row could be created.
      */
     private String isRedundantRow(Connection connection, String tableName, JSONObject object, String datetimeid) {
+        // DatabaseConnectionErrors rows are never redundant but require no row hash
+        if(tableName.equals("DatabaseConnectionErrors")) {
+            return "NO_HASH";
+        }
+
         try {
             MessageDigest md = MessageDigest.getInstance("MD5");
             md.update(object.toString().getBytes());
