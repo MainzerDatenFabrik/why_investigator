@@ -165,4 +165,4 @@ Any trademarks contained in the source code, binaries, and/or in the documentati
 
 ## Further Information
 
-www.mainzerdatenfabrik.de
+www.madafa.de
