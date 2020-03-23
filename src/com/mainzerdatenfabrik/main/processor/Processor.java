@@ -13,7 +13,10 @@ import com.mainzerdatenfabrik.main.utils.Utils;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
+import javax.xml.transform.Result;
 import java.io.File;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 import java.sql.Date;
 import java.sql.*;
 import java.util.*;
@@ -390,19 +393,24 @@ public class Processor extends ProgramModule {
             // Loop over every JSONObject inside of the JSONArray
             for(int i = 0; i < jsonArray.length(); i++) {
                 Logger.getLogger().info("Processing json object " + (i+1) + " from file " + file.getName());
-                /*
-                if(!isRedundantRow(tableName, jsonArray.getJSONObject(i), datetimeid)) {
-                    System.out.println("Not redundant! Table: " + tableName + ", Row: " + jsonArray.getJSONObject(i).toString());
-                    statement.addBatch(insertJSONObjectIntoTable(jsonArray.getJSONObject(i), tableName, datetimeid, projectHashId));
+
+                // Object without timestamp key to create the md5 hash from
+                JSONObject object2 = jsonArray.getJSONObject(i);
+                object2.remove("Timestamp");
+
+                String rowHash;
+
+                if(!(rowHash = isRedundantRow(connection, tableName, object2, datetimeid)).equals("")) {
+                    statement.addBatch(insertJSONObjectIntoTable(jsonArray.getJSONObject(i), tableName, datetimeid, projectHashId, rowHash));
                 } else {
-                    System.out.println("Skipping row! Table: " + tableName + ", Row: " + jsonArray.getJSONObject(i).toString());
+                    Logger.getLogger().info("Skipping redundant table row for table " + tableName + ". Row: " + jsonArray.getJSONObject(i).toString());
                 }
-                 */
-                statement.addBatch(insertJSONObjectIntoTable(jsonArray.getJSONObject(i), tableName, datetimeid, projectHashId));
 
                 // Send current json Object log to Graylog
-                Logger.getLogger().info("Sending json object " + (i+1) + " from file " + file.getName() + " to Graylog.");
-                Graylog.sendLog(tableName, jsonArray.getJSONObject(i).toString());
+                if(Graylog.isEnabled()) {
+                    Logger.getLogger().info("Sending json object " + (i+1) + " from file " + file.getName() + " to Graylog.");
+                    Graylog.sendLog(tableName, jsonArray.getJSONObject(i).toString());
+                }
             }
 
             // Execute the batch and receive the number of rows changed for every statement contained in the batch
@@ -422,84 +430,73 @@ public class Processor extends ProgramModule {
     }
 
     /**
-     * Determines if a specific json object (log file) is redundant information based on the previously inserted values.
+     * Determines for a specified jsonObject if the values inside it that determine the current table row to insert
+     * if the object is redundant (i.e., if the current values for the table row match the previous values).
+     * This is done by quering the entry with the next lowest datetimeid value and identical FQDN and comparing
+     * the hashRow value of the previous row with the hashRow value of the current row.
      *
-     * @return true, if the object is redundant information, else false
+     * @param connection the connection to the database
+     * @param tableName  the name of the table the row is contained in
+     * @param object     the specified jsonObject to determine if it is redundant for
+     * @param datetimeid the datetimeid of the current table row
+     *
+     * @return empty string if the row is redundant, the rowHash for the current row if the row is not redundant,
+     *         "NO_HASH" if no hash for the current row could be created.
      */
-    private boolean isRedundantRow(String tableName, JSONObject object, String datetimeid) {
-        try(Connection connection = UtilsJDBC.establishConnection(hostName, port, targetDatabaseName, sqlUsername, sqlPassword)) {
+    private String isRedundantRow(Connection connection, String tableName, JSONObject object, String datetimeid) {
+        // DatabaseConnectionErrors rows are never redundant but require no row hash
+        if(tableName.equals("DatabaseConnectionErrors")) {
+            return "NO_HASH";
+        }
 
-            if(connection == null) {
-                throw new IllegalStateException("Unable to establish a connection to " + hostName + ":" + port + "/" + targetDatabaseName + ".");
+        try {
+            MessageDigest md = MessageDigest.getInstance("MD5");
+            md.update(object.toString().getBytes());
+            byte[] digest = md.digest();
+
+            StringBuilder hexString = new StringBuilder();
+
+            for (byte h : digest) {
+                String hex = Integer.toHexString(0xff & h);
+                if (hex.length() == 1) {
+                    hexString.append("0");
+                }
+                hexString.append(hex);
             }
 
-            String sql = createRedundancyQuery(tableName, object, datetimeid);
-
-            System.out.println("RedundancyQuery (" + tableName + "): " + sql);
+            String fqdn = "";
+            // Todo: Remove this it is just a temporary fix for the fqdn problem with USER Users Info
+            if(object.has("FQDN")) {
+                fqdn = object.getString("FQDN");
+            } else  if(object.has("fqdn")) {
+                fqdn = object.getString("fqdn");
+            }
+            String sql = "  SELECT TOP(1) rowHash FROM stage." + tableName + " WHERE datetimeid < " + datetimeid + " AND FQDN = '" + fqdn + "' ORDER BY datetimeid DESC";
 
             try(Statement statement = connection.createStatement();
                 ResultSet resultSet = statement.executeQuery(sql)) {
-                return resultSet.isBeforeFirst();
+
+                if(resultSet.next()) {
+                    String rowHash = resultSet.getString(1);
+
+                    if(rowHash.equals(hexString.toString())) {
+                        // Return empty string here to indicate that the previous row has the same rowHash as the current
+                        return "";
+                    } else {
+                        return hexString.toString();
+                    }
+                } else {
+                    return hexString.toString();
+                }
+            } catch (SQLException e) {
+                Logger.getLogger().severe("Exception occurred while retrieving previous row hash.");
+                Logger.getLogger().log(Level.SEVERE, e.getMessage(), e);
             }
-        } catch (SQLException e) {
-            e.printStackTrace();
+        } catch (NoSuchAlgorithmException e) {
+            Logger.getLogger().severe("Exception occurred while checking redundancy of table row.");
+            Logger.getLogger().log(Level.SEVERE, e.getMessage(), e);
         }
-        return false;
-    }
-
-    /**
-     * Creates a t-sql statement based on a specific table name, a datetimeid and a json object. This statement is used
-     * to determine if a specific log row if redundant or not.
-     *
-     * @param tableName  the name of the table to create the statement for
-     * @param object     the specific object the statement is based on
-     * @param datetimeid the datetimeid of the object
-     *
-     * @return the create redundancy statement
-     */
-    private String createRedundancyQuery(String tableName, JSONObject object, String datetimeid) {
-        StringBuilder queryBuilder = new StringBuilder();
-        queryBuilder.append("SELECT * FROM stage.").append(tableName).append(" WHERE datetimeid < ");
-        queryBuilder.append(datetimeid);
-
-        Iterator<String> iterator = object.keys();
-
-        List<String> blackList = new ArrayList<String>();
-        blackList.add("datetimeid");
-        blackList.add("Timestamp");
-        blackList.add("projectHashId");
-
-        while(iterator.hasNext()) {
-            String key = iterator.next();
-
-            if(!blackList.contains(key)) {
-                queryBuilder.append(" AND ").append(substituteKeyName(key)).append(getValueString(object.get(key)));
-            }
-        }
-        return queryBuilder.append(";").toString();
-    }
-
-    /**
-     * Creates a value String for a specific object. A value string is basically the object in the format required for
-     * t-sql queries (e.g., Max Mustermann -> 'Max Mustermann').
-     *
-     * @param object the specific object to create the value string of
-     *
-     * @return the value string create from the specified object
-     */
-    private String getValueString(Object object) {
-
-        if(object == null) {
-            return " IS NULL ";
-        }
-
-        if(object instanceof String) {
-            return " = \'" + object + "\' ";
-        } else if(object instanceof Boolean) {
-            return " = " + (((Boolean) object) ? "1 " : "0 ");
-        } else {
-            return " = " + object + " ";
-        }
+        return "NO_HASH";
     }
 
     /**
@@ -515,7 +512,7 @@ public class Processor extends ProgramModule {
      *
      * TODO: clean this up. This has to be possible in a much cleaner way
      */
-    private String insertJSONObjectIntoTable(JSONObject object, String tableName, String datetimeid, String projectHashId) {
+    private String insertJSONObjectIntoTable(JSONObject object, String tableName, String datetimeid, String projectHashId, String rowHash) {
         // Create and initialize StringBuilder
         StringBuilder insertBuilder = new StringBuilder();
         insertBuilder.append("INSERT INTO stage.").append(tableName).append(" VALUES ");
@@ -525,8 +522,11 @@ public class Processor extends ProgramModule {
         // in the first iteration, add datetimeid to the json
         insertBuilder.append(datetimeid).append(", ");
 
-        // add the fileGroupId (the checksum of the zip file) to the json
+        // add the projectHashId (the checksum of the zip file) to the json
         insertBuilder.append("\'").append(projectHashId).append("\'").append(", ");
+
+        // add the rowHash of the table row
+        insertBuilder.append("\'").append(rowHash).append("\', ");
 
         // Iterate over the keys in the json object
         Iterator<String> keys = object.keys();
@@ -534,9 +534,9 @@ public class Processor extends ProgramModule {
             String key = keys.next();
 
             // Skip the timestamp field as datatimeid is the same and already present
-            if(key.equals("Timestamp")) {
+            if (key.equals("Timestamp")) {
                 // Timestamp was the last object, close the values parsing for this object
-                if(!keys.hasNext()) {
+                if (!keys.hasNext()) {
                     //Strip ", " from the end of the insert builder
                     insertBuilder.deleteCharAt(insertBuilder.length() - 2);
                 }
@@ -544,7 +544,7 @@ public class Processor extends ProgramModule {
             }
 
             // Extract the number values from the text containing "core" info
-            if(tableName.equals("INSTANCECoreCounts") && key.equals("Text")) {
+            if (tableName.equals("INSTANCECoreCounts") && key.equals("Text")) {
                 String numberString = object.getString(key).replaceAll("[^-?0-9]+", " ");
                 String[] numbers = numberString.trim().split(" ");
 
@@ -553,7 +553,7 @@ public class Processor extends ProgramModule {
                 insertBuilder.append(Integer.parseInt(numbers[2])).append(", ");
                 insertBuilder.append(Integer.parseInt(numbers[3])).append(", ");
                 insertBuilder.append(Integer.parseInt(numbers[4]));
-                if(keys.hasNext()) {
+                if (keys.hasNext()) {
                     insertBuilder.append(", ");
                 }
                 continue;
@@ -562,12 +562,12 @@ public class Processor extends ProgramModule {
             // Append the value to the insert query
             Object valueObject = object.get(key);
             // Some string values have to be handled differently
-            if(valueObject instanceof String) {
+            if (valueObject instanceof String) {
 
                 String valueString = (String) valueObject;
 
                 // Special substitutions have to be done in order to insert scripts
-                if(key.equals("script")) {
+                if (key.equals("script")) {
                     // Replace "'" operator to avoid parsing errors
                     valueString = valueString.replace("\'", "~");
                     // Insert "++" in front of every line of the script to avoid parsing errors
@@ -581,28 +581,29 @@ public class Processor extends ProgramModule {
                 // Every string has to start and end with the "'" operator
                 // do not put "'" around NULL value for proper integer handling
                 // if not done, the parser is receiving a string even tho he expects an integer
-                if(!valueString.startsWith("\'") && !valueString.equals("NULL")) {
+                if (!valueString.startsWith("\'") && !valueString.equals("NULL")) {
                     valueString = "\'" + valueString + "\'";
                 }
 
                 insertBuilder.append(valueString);
                 // Substitute "TRUE" and "FALSE" with 0/1 bit
-            } else if(valueObject instanceof Boolean) {
-                if((Boolean) valueObject) {
+            } else if (valueObject instanceof Boolean) {
+                if ((Boolean) valueObject) {
                     insertBuilder.append(1);
                 } else {
                     insertBuilder.append(0);
                 }
 
-            }  else {
+            } else {
                 insertBuilder.append(valueObject);
             }
 
             //Prepare for next value if the current value isn't the last one
-            if(keys.hasNext()) {
+            if (keys.hasNext()) {
                 insertBuilder.append(", ");
             }
         }
+
         return insertBuilder.append(");").toString();
     }
 
@@ -618,6 +619,7 @@ public class Processor extends ProgramModule {
             queryBuilder.append("CREATE TABLE stage.").append(tableName);
             queryBuilder.append(" (datetimeid BIGINT, ");
             queryBuilder.append("projectHashId NVARCHAR(1000), ");
+            queryBuilder.append("rowHash NVARCHAR(1000), ");
 
             JSONArray jsonArray = JSONManager.getJSONArrayFromFile(file);
 

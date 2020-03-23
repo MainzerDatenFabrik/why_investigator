@@ -21,6 +21,8 @@ public class Graylog {
     // The ip of the graylog server
     private static  String ip_address = "";
 
+    private static boolean enabled = false;
+
     private static final int PORT_GENERAL = 9001;
 
     private static final int PORT_DATABASE = 9002;
@@ -38,6 +40,7 @@ public class Graylog {
         JSONObject graylogConfig = FileManager.getConfigObject("graylogConfig");
 
         ip_address = graylogConfig.getString("ip_address");
+        enabled = graylogConfig.getBoolean("enabled");
 
         Logger.getLogger().config("Finished loading config for Gaylog.");
     }
@@ -214,5 +217,14 @@ public class Graylog {
         gelf.put("short_message", shortMessage);
 
         return gelf.toString();
+    }
+
+    /**
+     * Indicates whether or not to send messages to the Graylog inputs or not.
+     *
+     * @return true, if messages should be sent, else false
+     */
+    public static boolean isEnabled() {
+        return enabled;
     }
 }

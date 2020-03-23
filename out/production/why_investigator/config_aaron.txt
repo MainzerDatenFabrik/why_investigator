@@ -122,7 +122,7 @@
 	    "sleepTime":10
 	},
 	"graylogConfig":{
-	    "ip_address":"",
+	    "ip_address":""
 	    "enabled":true
 	}
 }
