@@ -217,6 +217,36 @@ public class FileManager {
     }
 
     /**
+     * Creates a checksum of a specified string based on the "MessageDigest" instance at the top of the class.
+     *
+     * @param string the string to create the checksum of
+     *
+     * @return the checksum created from the specified string
+     */
+    public static String calculateChecksum(String string) {
+       MessageDigest messageDigest = null;
+        try {
+            messageDigest = MessageDigest.getInstance(HASH_ALGORITHM);
+        } catch (NoSuchAlgorithmException e) {
+            Logger.getLogger().severe("Unable to find digest algorithm: " + HASH_ALGORITHM);
+            Logger.getLogger().log(Level.SEVERE, e.getMessage(), e);
+        }
+
+        if(messageDigest != null) {
+
+            byte[] bytes;
+            byte[] byteString = string.getBytes();
+
+            messageDigest.update(byteString, 0, byteString.length);
+
+            bytes = messageDigest.digest();
+            return buildHexString(bytes);
+        }
+        Logger.getLogger().severe("Failed to calculate checksum for: " + string);
+        return null;
+    }
+
+    /**
      * Loads a file and creates the Checksum based on the "MessageDigest" instance at the top of the class.
      *
      * @param file - the file to get the checksum of
@@ -250,20 +280,33 @@ public class FileManager {
 
             byte[] hash = messageDigest.digest();
 
-            StringBuilder hexString = new StringBuilder();
+            String hashString = buildHexString(hash);
 
-            for (byte h : hash) {
-                String hex = Integer.toHexString(0xff & h);
-                if (hex.length() == 1) {
-                    hexString.append("0");
-                }
-                hexString.append(hex);
-            }
-            Logger.getLogger().info("Returning checksum: " + hexString.toString() + " for file: " + file.getName());
-            return hexString.toString();
+            Logger.getLogger().info("Returning checksum: " + hashString + " for file: " + file.getName());
+            return hashString;
         }
         Logger.getLogger().severe("Failed to calculate checksum for file: " + file.getName());
         return null;
+    }
+
+    /**
+     * Build a hex string based on a specified array of bytes.
+     *
+     * @param bytes the array of bytes to build the hex string from
+     *
+     * @return the hex string created from the specified bytes array
+     */
+    private static String buildHexString(byte[] bytes) {
+        StringBuilder hexString = new StringBuilder();
+
+        for (byte b : bytes) {
+            String hex = Integer.toHexString(0xff & b);
+            if (hex.length() == 1) {
+                hexString.append("0");
+            }
+            hexString.append(hex);
+        }
+        return hexString.toString();
     }
 
     /**
