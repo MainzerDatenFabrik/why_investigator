@@ -151,6 +151,7 @@ public class WorkerTask implements Runnable {
                     statement.close();
                 } catch (SQLException e) {
                     Logger.getLogger().warning("SQL Exception occurred while performing checks.");
+                    Logger.getLogger().warning("Query: " + query);
                     Logger.getLogger().log(Level.SEVERE, e.getMessage(), e);
                     Slack.sendMessage("*SQLWorker*: SQL exception occurred: *" + e.getMessage() + "*.");
                 }
@@ -200,6 +201,7 @@ public class WorkerTask implements Runnable {
                 return;
             }
 
+            String query = "";
             try {
                 Statement statement = connection.createStatement();
                 if(statement == null) {
@@ -208,7 +210,7 @@ public class WorkerTask implements Runnable {
                 }
 
                 for(Check check : checks) {
-                    String query = check.getQuery(serverVersion);
+                    query = check.getQuery(serverVersion);
 
                     if(query != null) {
                         Logger.getLogger().info("Executing check: " + check.getName() + ".");
@@ -220,7 +222,8 @@ public class WorkerTask implements Runnable {
 
                 statement.close();
             } catch (SQLException e) {
-                Logger.getLogger().info("Exception occurred while performing database check.");
+                Logger.getLogger().warning("Exception occurred while performing database check.");
+                Logger.getLogger().warning("Query: " + query);
                 Logger.getLogger().log(Level.SEVERE, e.getMessage(), e);
             }
         }
