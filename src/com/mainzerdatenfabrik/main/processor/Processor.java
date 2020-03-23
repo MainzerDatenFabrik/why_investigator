@@ -264,8 +264,12 @@ public class Processor extends ProgramModule {
         String unpackedPath = FileManager.unpack(file.getAbsolutePath());
         File unpacked = new File(unpackedPath);
 
-        // The unique hash value identifying the group of files packed in the "zip" file.
-        String projectHashId = FileManager.calculateChecksum(file);
+        // Generate the project hash id
+        String projectHashId = "NONE";
+        String[] filenameSplit = file.getName().split("_");
+        if(filenameSplit.length >= 3) {
+            projectHashId = filenameSplit[2];
+        }
 
         // The datetimeid of the start of reading in the zip file
         String datetimeid = Utils.getDatetimeId();
