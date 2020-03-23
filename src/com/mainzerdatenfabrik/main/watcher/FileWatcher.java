@@ -149,7 +149,9 @@ public class FileWatcher extends ProgramModule {
                             + ((endDatetime.getTime() - startDatetime.getTime())/60000.0) + " minutes* total).");
                 }
 
-                FileManager.processWorkersDirectory(FILE_WATCHER_DIRECTORY, "FileWatcher", hostName, timestamp);
+                // TODO: Fix FileWatcher ProjectHashId
+                String projectHashId = "NULL";
+                FileManager.processWorkersDirectory(FILE_WATCHER_DIRECTORY, "FileWatcher", hostName, timestamp, projectHashId);
 
                 // If the watcher is "supposed" to continue running
                 if(running) {

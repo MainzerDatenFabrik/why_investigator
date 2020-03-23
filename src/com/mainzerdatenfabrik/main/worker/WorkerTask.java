@@ -97,7 +97,18 @@ public class WorkerTask implements Runnable {
                     performDatabaseChecks(CheckLibrary.getInstance().getDatabaseChecks(), timestamp);
                 }
 
-                FileManager.processWorkersDirectory(Thread.currentThread().getName(), "SQLWorker", hostName, timestamp);
+                /**
+                 * After refactoring the projectHashId, it is now created based on the configuration of the worker
+                 * creating the batch and is appended to the filename of the batch.
+                 */
+                String projectHashIdStr = hostName + port + sqlUsername;
+                if(user) projectHashIdStr += "user";
+                if(instance) projectHashIdStr += "instance";
+                if(database) projectHashIdStr += "database";
+
+                String projectHashId = FileManager.calculateChecksum(projectHashIdStr);
+
+                FileManager.processWorkersDirectory(Thread.currentThread().getName(), "SQLWorker", hostName, timestamp, projectHashId);
 
                 // Set the "active" flag of the worker to false, indicating
                 // that it is safe to interrupt and terminate the worker at the moment

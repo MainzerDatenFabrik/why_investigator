@@ -597,12 +597,12 @@ public class FileManager {
      * @param hostname the name of the host the data is collected from
      * @param timestamp the timestamp for the iteration of the data
      */
-    public static void processWorkersDirectory(String workerName, String subDirectory, String hostname, String timestamp) {
+    public static void processWorkersDirectory(String workerName, String subDirectory, String hostname, String timestamp, String projectHashId) {
         Logger.getLogger().info("Processing worker directory for worker=" + workerName + " in dir=" + subDirectory
                         + ", hostName=" + hostname + ", timestamp=" + timestamp + ".");
 
         String datetimeid = Utils.getDatetimeId(timestamp);
-        String fileName = datetimeid + "_" + Utils.randomAlphaNumericString(20) + "_" + hostname + FILE_EXTENSION_COMPRESSED;
+        String fileName = datetimeid + "_" + Utils.randomAlphaNumericString(20) + "_" + projectHashId + "_" + hostname + FILE_EXTENSION_COMPRESSED;
         String destination = Git.getGitRepositoryLocalPath() + "/" + subDirectory + "/" + fileName;
         String source = LOG_FILE_DIRECTORY + "/" + workerName;
         pack(source, destination);
