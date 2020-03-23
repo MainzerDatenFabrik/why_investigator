@@ -34,8 +34,6 @@ public class ControlPanel {
     private boolean processorRunning = false;
     // Indicates if the FileWatcher instance is running
     private boolean watcherRunning = false;
-    // Indicates if the Synchronizer instance is running
-    private boolean synchronizerRunning = false;
 
     // The Scanner instance listening on the default System.in (i.e., the console) for user input
     private Scanner scanner = new Scanner(System.in);
@@ -65,10 +63,6 @@ public class ControlPanel {
     private Timer timer;
     private long delay;
     private long period;
-
-    // The user and pw for the synchronizer module
-    private String syncUser;
-    private String syncPass;
 
     /**
      * The constructor.
@@ -931,14 +925,6 @@ public class ControlPanel {
 
         period = controlConfig.getLong("slackStatusPeriod");
         Logger.getLogger().config("Retrieved \"slackStatusPeriod\"=" + period + " from the config file.");
-
-        // Retrieve "syncConfig" object from config json to access the user/pw required
-        controlConfig = FileManager.getConfigObject("syncConfig");
-
-        syncUser = controlConfig.getString("syncUser");
-        Logger.getLogger().config("Retrieved \"syncUser\"=" + syncUser + " from the config file.");
-        syncPass = controlConfig.getString("syncPass");
-        Logger.getLogger().config("Retrieved \"syncPass\"=" + syncPass + " from the config file.");
 
         Logger.getLogger().config("Finished loading config for ControlPanel.");
     }
