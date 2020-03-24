@@ -1,0 +1,7 @@
+logs/
+out/
+libs/
+.idea/
+res/config_aaron.txt
+src/META-INF/MANIFEST.MF
+why_investigator.iml
