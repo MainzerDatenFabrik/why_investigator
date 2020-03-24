@@ -19,9 +19,9 @@ import java.util.logging.Level;
 public class Graylog {
 
     // The ip of the graylog server
-    private static  String ip_address = "";
+    private static  String ip_address;
 
-    private static boolean enabled = false;
+    private static boolean enabled;
 
     private static final int PORT_GENERAL = 9001;
 
@@ -33,6 +33,18 @@ public class Graylog {
     private static final int PORT_HARDWARE_INFO = 9006;
     private static final int PORT_SYS_ADMINS = 9007;
     private static final int PORT_CONNECTION_ERRORS = 9008;
+
+    // Performance
+    private static final int PORT_CPU_UTILIZATION = 9009;
+    private static final int PORT_CPU_UTILIZATION_HISTORY = 9010;
+    private static final int PORT_DRIVE_LEVEL_LATENCY = 9011;
+    private static final int PORT_IO_LATENCY = 9012;
+    private static final int PORT_PROCESS_MEMORY = 9013;
+    private static final int PORT_SYSTEM_MEMORY = 9014;
+    private static final int PORT_TOP_WORKER_TIME_QUERIES = 9015;
+    private static final int PORT_VOLUME_INFO = 9016;
+    private static final int PORT_CPU_USAGE_BY_DATABASE = 9017;
+    private static final int PORT_IO_USAGE_BY_DATABASE = 9018;
 
     public static void initialize() {
         Logger.getLogger().config("Loading config for Graylog.");
@@ -56,108 +68,44 @@ public class Graylog {
     public static boolean sendLog(String tableName, String jsonString) {
 
         // Specific sorting of log files
-        if(tableName.equals("INSTANCEServerProperties")) {
-            sendServerPropertiesLog(jsonString);
-        }
-        if(tableName.equals("INSTANCEHardwareInfo")) {
-            sendHardwareInfoLog(jsonString);
-        }
-        if(tableName.equals("DatabaseConnectionErrors")) {
-            sendConnectionErrorsLog(jsonString);
-        }
-        if(tableName.equals("USERSystemAdministratorInfo")) {
-            sendSysAdminsLog(jsonString);
+        switch(tableName) {
+            case "INSTANCEServerProperties": send(PORT_SERVER_PROPERTIES, jsonString); break;
+            case "INSTANCEHardwareInfo": send(PORT_HARDWARE_INFO, jsonString); break;
+            case "INSTANCECPUUtilization": send(PORT_CPU_UTILIZATION, jsonString); break;
+            case "INSTANCECPUUtilizationHistory": send(PORT_CPU_UTILIZATION_HISTORY, jsonString); break;
+            case "INSTANCEDriveLevelLatency": send(PORT_DRIVE_LEVEL_LATENCY, jsonString); break;
+            case "INSTANCEIOLatency": send(PORT_IO_LATENCY, jsonString); break;
+            case "INSTANCEProcessMemory": send(PORT_PROCESS_MEMORY, jsonString); break;
+            case "INSTANCESystemMemory": send(PORT_SYSTEM_MEMORY, jsonString); break;
+            case "INSTANCETopWorkerTimeQueries": send(PORT_TOP_WORKER_TIME_QUERIES, jsonString); break;
+            case "INSTANCEVolumeInfo": send(PORT_VOLUME_INFO, jsonString); break;
+            case "INSTANCECPUUsageByDatabase": send(PORT_CPU_USAGE_BY_DATABASE, jsonString); break;
+            case "INSTANCEIOUsageByDatabase": send(PORT_IO_USAGE_BY_DATABASE, jsonString); break;
+            case "USERSystemAdministratorInfo": send(PORT_SYS_ADMINS, jsonString); break;
+            case "DatabaseConnectionErrors": send(PORT_CONNECTION_ERRORS, jsonString); break;
         }
 
         // General sorting of log files
         String tableNameLower = tableName.toLowerCase();
 
-        if(tableNameLower.startsWith("database")) {
-            return sendDatabaseLog(jsonString);
-        } else if(tableNameLower.startsWith("instance")) {
-            return sendInstanceLog(jsonString);
-        } else if(tableNameLower.startsWith("user")) {
-            return sendUsersLog(jsonString);
-        } else {
-            return send(PORT_GENERAL, jsonString, "1.1", "mainzerdatenfabrik.de", "Submit new log file.");
-        }
+        int port = (tableNameLower.startsWith("database") ? PORT_DATABASE :
+                   (tableNameLower.startsWith("instance")) ? PORT_INSTANCE :
+                   (tableNameLower.startsWith("user")) ? PORT_USERS : PORT_GENERAL);
+
+        return send(port, jsonString);
     }
 
     /**
-     * Sends a specific json object to the database graylog input
+     * Wrapper for the send method. Sends a specific json object in string format to the Graylog server specified
+     * by {@code ip_address} based on specific host to create a geld object from the specified json object string.
      *
-     * @param jsonString the specific json object (i.e., log file) to send
+     * @param port       the port to send the message on
+     * @param jsonString the specified json object string
      *
-     * @return true, if the object was sent successfully, else false
+     * @return true, if the message was sent successfully, else false
      */
-    private static boolean sendDatabaseLog(String jsonString) {
-        return send(PORT_DATABASE, jsonString, "1.1", "mainzerdatenfabrik.de", "Submit new database log file.");
-    }
-
-    /**
-     * Sends a specific json object to the instance graylog input
-     *
-     * @param jsonString the specific json object (i.e., log file) to send
-     *
-     * @return true, if the object was sent successfully, else false
-     */
-    private static boolean sendInstanceLog(String jsonString) {
-        return send(PORT_INSTANCE, jsonString, "1.1", "mainzerdatenfabrik.de", "Submit new instance log file.");
-    }
-
-    /**
-     * Sends a specific json object to the users graylog input
-     *
-     * @param jsonString the specific json object (i.e., log file) to send
-     *
-     * @return true, if the object was sent successfully, else false
-     */
-    private static boolean sendUsersLog(String jsonString) {
-        return send(PORT_USERS, jsonString, "1.1", "mainzerdatenfabrik.de", "Submit new users log file.");
-    }
-
-    /**
-     * Sends a specific json object to the server properties graylog input
-     *
-     * @param jsonString the specific json object (i.e., log file) to send
-     *
-     * @return true, if the object was sent successfully, else false
-     */
-    private static boolean sendServerPropertiesLog(String jsonString) {
-        return send(PORT_SERVER_PROPERTIES, jsonString, "1.1", "mainzerdatenfabrik.de", "Submit new server properties log file.");
-    }
-
-    /**
-     * Sends a specific json object to the hardware info graylog input
-     *
-     * @param jsonString the specific json object (i.e., log file) to send
-     *
-     * @return true, if the object was sent successfully, else false
-     */
-    private static boolean sendHardwareInfoLog(String jsonString) {
-        return send(PORT_HARDWARE_INFO, jsonString, "1.1", "mainzerdatenfabrik.de", "Submit new hardware info log file.");
-    }
-
-    /**
-     * Sends a specific json object to the sys admin graylog input
-     *
-     * @param jsonString the specific json object (i.e., log file) to send
-     *
-     * @return true, if the object was sent successfully, else false
-     */
-    private static boolean sendSysAdminsLog(String jsonString) {
-        return send(PORT_SYS_ADMINS, jsonString, "1.1", "mainzerdatenfabrik.de", "Submit new sys admins log file.");
-    }
-
-    /**
-     * Sends a specific json object to the connection error graylog input
-     *
-     * @param jsonString the specific json object (i.e., log file) to send
-     *
-     * @return true, if the object was sent successfully, else false
-     */
-    private static boolean sendConnectionErrorsLog(String jsonString) {
-        return send(PORT_CONNECTION_ERRORS, jsonString, "1.1", "mainzerdatenfabrik.de", "Submit new connection error log file.");
+    public static boolean send(int port, String jsonString) {
+        return send(port, jsonString, "1.0", "why_investigator", "Submit new log file.");
     }
 
     /**
