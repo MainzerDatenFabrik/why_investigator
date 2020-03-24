@@ -1,7 +1,14 @@
 logs/
+
 out/
+
 libs/
+
 .idea/
+
 res/config_aaron.txt
+
+src/Main.java
 src/META-INF/MANIFEST.MF
+
 why_investigator.iml
