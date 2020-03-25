@@ -156,7 +156,10 @@ public class Graylog {
 
         while(keys.hasNext()) {
             String key = keys.next();
-            String keyModified = "_" + key.replace(" ", "_").replace("(", "").replace(")", "");
+            String keyModified = "_" + key.replace(" ", "_")
+                    .replace("(", "")
+                    .replace(")", "")
+                    .replace("/", "");
             gelf.put(keyModified, json.get(key));
         }
 
