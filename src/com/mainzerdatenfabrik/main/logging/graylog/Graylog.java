@@ -46,6 +46,12 @@ public class Graylog {
     private static final int PORT_CPU_USAGE_BY_DATABASE = 9017;
     private static final int PORT_IO_USAGE_BY_DATABASE = 9018;
 
+    private static final int PORT_FACT_OBJECT_MODIFICATION = 9019;
+    private static final int PORT_FACT_SCAN_TAB = 9020;
+    private static final int PORT_FACT_SERVER_PROPERTIES = 9021;
+    private static final int PORT_FACT_USER_BASE_INFO = 9022;
+    private static final int PORT_FACT_USER_BASE_INFO_SYS_ADMINS = 9023;
+
     public static void initialize() {
         Logger.getLogger().config("Loading config for Graylog.");
 
@@ -83,6 +89,11 @@ public class Graylog {
             case "INSTANCEIOUsageByDatabase": send(PORT_IO_USAGE_BY_DATABASE, jsonString); break;
             case "USERSystemAdministratorInfo": send(PORT_SYS_ADMINS, jsonString); break;
             case "DatabaseConnectionErrors": send(PORT_CONNECTION_ERRORS, jsonString); break;
+            case "fact.ObjectModification": return send(PORT_FACT_OBJECT_MODIFICATION, jsonString);
+            case "fact.scantab": return send(PORT_FACT_SCAN_TAB, jsonString);
+            case "fact.ServerProperties": return send(PORT_FACT_SERVER_PROPERTIES, jsonString);
+            case "fact.UserBaseInfo": return send(PORT_FACT_USER_BASE_INFO, jsonString);
+            case "fact.UserBaseInfoSysadmin": return send(PORT_FACT_USER_BASE_INFO_SYS_ADMINS, jsonString);
         }
 
         // General sorting of log files

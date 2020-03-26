@@ -13,7 +13,6 @@ import com.mainzerdatenfabrik.main.utils.Utils;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
-import javax.xml.transform.Result;
 import java.io.File;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
@@ -168,8 +167,24 @@ public class Processor extends ProgramModule {
                     // Push processed files to a new branch and merge the branch with master
                     Git.pushToBranchAndMerge("Processor");
 
+                    // -------------------------------------------------------------------------------------------------
+                    int previousRecordCountOM = getRecordCount("fact.ObjectModification", connection);
+                    int previousRecordCountScan = getRecordCount("fact.scantab", connection);
+                    int previousRecordCountSP = getRecordCount("fact.ServerProperties", connection);
+                    int previousRecordCountUBI = getRecordCount("fact.UserBaseInfo", connection);
+                    int previousRecordCountUBIS = getRecordCount("fact.UserBaseInfoSysadmin", connection);
+                    // -------------------------------------------------------------------------------------------------
+
                     // Start the fact/dim generation
                     generateFacts(connection);
+
+                    // -------------------------------------------------------------------------------------------------
+                    processRecordDelta("fact.ObjectModification", previousRecordCountOM, connection);
+                    processRecordDelta("fact.scantab", previousRecordCountScan, connection);
+                    processRecordDelta("fact.ServerProperties", previousRecordCountSP, connection);
+                    processRecordDelta("fact.UserBaseInfo", previousRecordCountUBI, connection);
+                    processRecordDelta("fact.UserBaseInfoSysadmin", previousRecordCountUBIS, connection);
+                    // -------------------------------------------------------------------------------------------------
                 }
 
                 // If the processor is "supposed" to continue running
@@ -192,6 +207,158 @@ public class Processor extends ProgramModule {
             Logger.getLogger().info("Processor was interrupted while sleeping.");
             Logger.getLogger().info("Processor EXIT.");
         }
+    }
+
+    private void processRecordDelta(String tableName, int previousRecordCount, Connection connection) {
+        int currentRecordCount = getRecordCount(tableName, connection);
+        int difference = currentRecordCount - previousRecordCount;
+
+        if(previousRecordCount != -1 && currentRecordCount != -1 && difference > 0) {
+            JSONArray lastNRecordsJson = getLastNRecordJson(connection, tableName, difference);
+
+            if(lastNRecordsJson != null) {
+                for (int i = 0; i < lastNRecordsJson.length(); i++) {
+                    JSONObject object = lastNRecordsJson.getJSONObject(i);
+                    Graylog.sendLog(tableName, object.toString());
+                }
+            }
+        }
+    }
+
+    private JSONArray getLastNRecordJson(Connection connection, String tableName, int n) {
+        String sql = "";
+        switch(tableName) {
+            case "fact.ObjectModification": sql = "SELECT TOP (" + n + ") base.id, " +
+                    "base.DatetimeId, " +
+                    "dt.DayAsText, " +
+                    "dt.WeekAsText, " +
+                    "dt.MonthAsText, " +
+                    "dt.MonthYearAsText, " +
+                    "phash.projecthashid, " +
+                    "host.hostname, " +
+                    "dbs.[Database], " +
+                    "inst.name, " +
+                    "cntr.ShortDescription, " +
+                    "cntr.Unit as CounterUnit, " +
+                    "base.CounterValue, " +
+                    "type.Type, " +
+                    "name.Name, " +
+                    "base.Date, " +
+                    "base.schemaId " +
+                    "FROM fact.ObjectModification base " +
+                    "INNER JOIN dim.projecthashid phash ON base.projecthashid = phash.id " +
+                    "INNER JOIN dim.hostname host ON base.HostnameId = host.id " +
+                    "INNER JOIN dim.[databases] dbs ON base.databaseid = dbs.id AND base.HostnameId = dbs.Hostname " +
+                    "INNER JOIN dim.instance inst ON base.instance = inst.id AND base.HostnameId = inst.host_id " +
+                    "INNER JOIN dim.counter cntr ON base.CounterId = cntr.id " +
+                    "INNER JOIN dim.objecttype type ON base.TypeDescriptionId = type.id " +
+                    "INNER JOIN dim.objectname name ON base.ObjectNameId = name.id AND base.HostnameId = name.host_id " +
+                    "INNER JOIN dim.DateTime dt ON base.DatetimeId = dt.DateTimeID " +
+                    "ORDER BY base.DateTimeId DESC;"; break;
+            case "fact.scantab": sql = ""; break;
+            case "fact.ServerProperties": sql = "SELECT TOP (" + n + ") " +
+                    "dt.DayAsText, " +
+                    "dt.WeekAsText, " +
+                    "dt.MonthAsText, " +
+                    "dt.MonthYearAsText, " +
+                    "phash.projecthashid, " +
+                    "host.hostname, " +
+                    "plevel.ProductLevel, " +
+                    "pmajor.ProductMajorVersion, " +
+                    "pversion.productversion, " +
+                    "pupdate.ProductUpdateLevel, " +
+                    "inst.name " +
+                    "FROM fact.ServerProperties base " +
+                    "INNER JOIN dim.DateTime dt ON base.DatetimeId = dt.DateTimeID " +
+                    "INNER JOIN dim.projecthashid phash ON base.projecthashid = phash.id " +
+                    "INNER JOIN dim.hostname host ON base.HostId = host.id " +
+                    "INNER JOIN dim.productlevel plevel ON base.ProductLevelId = plevel.id " +
+                    "INNER JOIN dim.productmajorversion pmajor ON base.ProductMajorVersionId = pmajor.id " +
+                    "INNER JOIN dim.productversion pversion ON base.ProductVersionID = pversion.id " +
+                    "INNER JOIN dim.productupdatelevel pupdate ON base.ProductUpdateLevelId = pupdate.id " +
+                    "INNER JOIN dim.instance inst ON base.instance_id = inst.id AND base.HostId = inst.host_id " +
+                    "INNER JOIN dim.edition edition ON base.EditionId = edition.id " +
+                    "INNER JOIN dim.counter cntr ON base.CounterId = cntr.id " +
+                    "ORDER BY base.DateTimeId DESC;"; break;
+            case "fact.UserBaseInfo": sql = "SELECT TOP (" + n + ") " +
+                    "dt.DayAsText, " +
+                    "dt.WeekAsText, " +
+                    "dt.MonthAsText, " +
+                    "dt.MonthYearAsText, " +
+                    "phash.projecthashid,  " +
+                    "host.hostname, " +
+                    "dbs.[Database], " +
+                    "cntr.ShortDescription, " +
+                    "cntr.Unit as CounterUnit, " +
+                    "base.CounterValue, " +
+                    "utype.UserType, " +
+                    "dbu.DatabaseUserName, " +
+                    "role.Role, " +
+                    "ptype.permissiontype, " +
+                    "pstate.PermissionState, " +
+                    "type.Type, " +
+                    "name.Name, " +
+                    "inst.name " +
+                    "FROM fact.UserBaseInfo base " +
+                    "INNER JOIN dim.DateTime dt ON base.DatetimeId = dt.DateTimeID " +
+                    "INNER JOIN dim.projecthashid phash ON base.projecthashid = phash.id " +
+                    "INNER JOIN dim.hostname host ON base.HostId = host.id " +
+                    "INNER JOIN dim.[databases] dbs ON base.databaseid = dbs.id AND base.HostId = dbs.Hostname " +
+                    "INNER JOIN dim.counter cntr ON base.CounterId = cntr.id " +
+                    "INNER JOIN dim.usertype utype ON base.UserTypeId = utype.id " +
+                    "INNER JOIN dim.databaseusername dbu ON base.DatabaseUsernameId = dbu.id AND base.HostId = dbu.host_id AND base.ServerNameId = dbu.instance_id " +
+                    "INNER JOIN dim.instance inst ON base.ServerNameId = inst.id AND base.HostId = inst.host_id " +
+                    "INNER JOIN dim.role role ON base.RoleId = role.id AND dbs.id = role.db_id AND inst.id = role.db_inst_id " +
+                    "INNER JOIN dim.permissiontype ptype ON base.PermissionTypeId = ptype.id " +
+                    "INNER JOIN dim.permissionstate pstate ON base.PermissionTypeId = pstate.id " +
+                    "INNER JOIN dim.objecttype type ON base.ObjectTypeId = type.id " +
+                    "INNER JOIN dim.objectname name ON base.ObjectNameId = name.id AND base.HostId = name.host_id " +
+                    "INNER JOIN dim.port port ON base.Port = port.id AND base.HostId = port.host_id " +
+                    "ORDER BY base.DateTimeId DESC;"; break;
+            case "fact.UserBaseInfoSysadmin": sql = "SELECT TOP (" + n + ") " +
+                    "dt.DayAsText, " +
+                    "dt.WeekAsText, " +
+                    "dt.MonthAsText, " +
+                    "dt.MonthYearAsText, " +
+                    "phash.projecthashid,  " +
+                    "host.hostname, " +
+                    "cntr.ShortDescription, " +
+                    "cntr.Unit as CounterUnit, " +
+                    "base.CounterValue, " +
+                    "dbu.DatabaseUserName, " +
+                    "inst.name " +
+                    "FROM fact.UserBaseInfoSysadmin base " +
+                    "INNER JOIN dim.DateTime dt ON base.DatetimeId = dt.DateTimeID " +
+                    "INNER JOIN dim.projecthashid phash ON base.projecthashid = phash.id " +
+                    "INNER JOIN dim.hostname host ON base.HostId = host.id " +
+                    "INNER JOIN dim.counter cntr ON base.CounterId = cntr.id " +
+                    "INNER JOIN dim.databaseusername dbu ON base.DatabaseUsernameId = dbu.id AND base.HostId = dbu.host_id AND base.ServerNameId = dbu.instance_id " +
+                    "INNER JOIN dim.instance inst ON base.ServerNameId = inst.id AND base.HostId = inst.host_id " +
+                    "ORDER BY base.DateTimeId DESC;"; break;
+        }
+
+        try(Statement statement = connection.createStatement();
+            ResultSet resultSet = statement.executeQuery(sql)) {
+            return JSONManager.convertResultSet(resultSet, "NONE");
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
+
+    private int getRecordCount(String tableName, Connection connection) {
+        String sql = "SELECT COUNT(*) FROM " + tableName + ";";
+
+        try(Statement statement = connection.createStatement();
+            ResultSet results = statement.executeQuery(sql)) {
+
+            if(results.next())  {
+                return results.getInt(1);
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return -1;
     }
 
     /**
