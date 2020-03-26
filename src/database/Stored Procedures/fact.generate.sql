@@ -3,6 +3,9 @@ GO
 SET ANSI_NULLS ON
 GO
 
+
+
+
 -- =============================================
 -- Author:		Benedikt Schackenberg
 -- Create date: 07.04.2019
@@ -730,7 +733,7 @@ BEGIN
            host.id AS host_id,
            ins.id instance_id,
            [servicename]
-    FROM [why_investigator_stage].[stage].[INSTANCESQLServerServicesInfo] base
+    FROM [stage].[INSTANCESQLServerServicesInfo] base
         INNER JOIN dim.hostname host
             ON host.Hostname = base.FQDN
         INNER JOIN dim.instance ins
@@ -872,7 +875,7 @@ BEGIN
            pedition.id AS pedition,
            '11' AS counter_ID,
            pinstmem.[PhysicalMemoryMB] AS Value
-    FROM [why_investigator_stage].stage.[INSTANCEServerProperties] base
+    FROM stage.[INSTANCEServerProperties] base
         INNER JOIN dim.hostname host
             ON host.Hostname = base.FQDN
         INNER JOIN dim.productlevel plevel
@@ -895,11 +898,11 @@ BEGIN
             ON phash.projectHashId = base.projectHashId
 		WHERE base.projectHashId IN
 		(
-		SELECT projecthashid FROM [why_investigator_stage].[dim].[projecthashid]
+		SELECT projecthashid FROM [dim].[projecthashid]
 			WHERE Created in(
 								SELECT  
 								 MAX([Created])
-								FROM [why_investigator_stage].[dim].[projecthashid]) 
+								FROM [dim].[projecthashid]) 
   )
 		
     UNION
@@ -914,7 +917,7 @@ BEGIN
            pedition.id AS pedition,
            '24' AS counter_ID,
            pinstmem.[AvailableMemoryMB] AS Value
-    FROM [why_investigator_stage].stage.[INSTANCEServerProperties] base
+    FROM stage.[INSTANCEServerProperties] base
         INNER JOIN dim.hostname host
             ON host.Hostname = base.FQDN
         INNER JOIN dim.productlevel plevel
@@ -937,11 +940,11 @@ BEGIN
             ON phash.projectHashId = base.projectHashId
 			WHERE base.projectHashId IN
 		(
-		SELECT projecthashid FROM [why_investigator_stage].[dim].[projecthashid]
+		SELECT projecthashid FROM [dim].[projecthashid]
 			WHERE Created in(
 								SELECT  
 								 MAX([Created])
-								FROM [why_investigator_stage].[dim].[projecthashid]) 
+								FROM [dim].[projecthashid]) 
   )
 		
     UNION
@@ -956,7 +959,7 @@ BEGIN
            pedition.id AS pedition,
            '13' AS counter_ID,
            pinsthw.[LogicalCPUCount] AS Value
-    FROM [why_investigator_stage].stage.[INSTANCEServerProperties] base
+    FROM stage.[INSTANCEServerProperties] base
         INNER JOIN dim.hostname host
             ON host.Hostname = base.FQDN
         INNER JOIN dim.productlevel plevel
@@ -979,11 +982,11 @@ BEGIN
             ON phash.projectHashId = base.projectHashId
 			WHERE base.projectHashId IN
 		(
-		SELECT projecthashid FROM [why_investigator_stage].[dim].[projecthashid]
+		SELECT projecthashid FROM [dim].[projecthashid]
 			WHERE Created in(
 								SELECT  
 								 MAX([Created])
-								FROM [why_investigator_stage].[dim].[projecthashid]) 
+								FROM [dim].[projecthashid]) 
   )
 		
     UNION
@@ -998,7 +1001,7 @@ BEGIN
            pedition.id AS pedition,
            '12' AS counter_ID,
            pinsthw.[scheduler_count] AS Value
-    FROM [why_investigator_stage].stage.[INSTANCEServerProperties] base
+    FROM stage.[INSTANCEServerProperties] base
         INNER JOIN dim.hostname host
             ON host.Hostname = base.FQDN
         INNER JOIN dim.productlevel plevel
@@ -1021,11 +1024,11 @@ BEGIN
             ON phash.projectHashId = base.projectHashId
 			WHERE base.projectHashId IN
 		(
-		SELECT projecthashid FROM [why_investigator_stage].[dim].[projecthashid]
+		SELECT projecthashid FROM [dim].[projecthashid]
 			WHERE Created in(
 								SELECT  
 								 MAX([Created])
-								FROM [why_investigator_stage].[dim].[projecthashid]) 
+								FROM [dim].[projecthashid]) 
   )
 		
     UNION
@@ -1040,7 +1043,7 @@ BEGIN
            pedition.id AS pedition,
            '14' AS counter_ID,
            pinsthw.[SQLServerUpTimehrs] AS Value
-    FROM [why_investigator_stage].stage.[INSTANCEServerProperties] base
+    FROM stage.[INSTANCEServerProperties] base
         INNER JOIN dim.hostname host
             ON host.Hostname = base.FQDN
         INNER JOIN dim.productlevel plevel
@@ -1063,11 +1066,11 @@ BEGIN
             ON phash.projectHashId = base.projectHashId
 			WHERE base.projectHashId IN
 		(
-		SELECT projecthashid FROM [why_investigator_stage].[dim].[projecthashid]
+		SELECT projecthashid FROM [dim].[projecthashid]
 			WHERE Created in(
 								SELECT  
 								 MAX([Created])
-								FROM [why_investigator_stage].[dim].[projecthashid]) 
+								FROM [dim].[projecthashid]) 
   )
 		
     UNION
@@ -1082,7 +1085,7 @@ BEGIN
            pedition.id AS pedition,
            '16' AS counter_ID,
            pinsthw.[CommittedTargetMemoryMB] AS Value
-    FROM [why_investigator_stage].stage.[INSTANCEServerProperties] base
+    FROM stage.[INSTANCEServerProperties] base
         INNER JOIN dim.hostname host
             ON host.Hostname = base.FQDN
         INNER JOIN dim.productlevel plevel
@@ -1105,11 +1108,11 @@ BEGIN
             ON phash.projectHashId = base.projectHashId
 			WHERE base.projectHashId IN
 		(
-		SELECT projecthashid FROM [why_investigator_stage].[dim].[projecthashid]
+		SELECT projecthashid FROM [dim].[projecthashid]
 			WHERE Created in(
 								SELECT  
 								 MAX([Created])
-								FROM [why_investigator_stage].[dim].[projecthashid]) 
+								FROM [dim].[projecthashid]) 
   )
 		
     UNION
@@ -1124,7 +1127,7 @@ BEGIN
            pedition.id AS pedition,
            '17' AS counter_ID,
            pinsthw.[CommittedMemoryMB] AS Value
-    FROM [why_investigator_stage].stage.[INSTANCEServerProperties] base
+    FROM stage.[INSTANCEServerProperties] base
         INNER JOIN dim.hostname host
             ON host.Hostname = base.FQDN
         INNER JOIN dim.productlevel plevel
@@ -1147,11 +1150,11 @@ BEGIN
             ON phash.projectHashId = base.projectHashId
 			WHERE base.projectHashId IN
 		(
-		SELECT projecthashid FROM [why_investigator_stage].[dim].[projecthashid]
+		SELECT projecthashid FROM [dim].[projecthashid]
 			WHERE Created in(
 								SELECT  
 								 MAX([Created])
-								FROM [why_investigator_stage].[dim].[projecthashid]) 
+								FROM [dim].[projecthashid]) 
   )
 		
     UNION
@@ -1166,7 +1169,7 @@ BEGIN
            pedition.id AS pedition,
            '19' AS counter_ID,
            pinsthw.[PhysicalCPUCount] AS Value
-    FROM [why_investigator_stage].stage.[INSTANCEServerProperties] base
+    FROM stage.[INSTANCEServerProperties] base
         INNER JOIN dim.hostname host
             ON host.Hostname = base.FQDN
         INNER JOIN dim.productlevel plevel
@@ -1189,11 +1192,11 @@ BEGIN
             ON phash.projectHashId = base.projectHashId
 			WHERE base.projectHashId IN
 		(
-		SELECT projecthashid FROM [why_investigator_stage].[dim].[projecthashid]
+		SELECT projecthashid FROM [dim].[projecthashid]
 			WHERE Created in(
 								SELECT  
 								 MAX([Created])
-								FROM [why_investigator_stage].[dim].[projecthashid]) 
+								FROM [dim].[projecthashid]) 
   )
 		
     UNION
@@ -1211,7 +1214,7 @@ BEGIN
     --pinsthw.[PhysicalCPUCount] AS Value
 
 
-    FROM [why_investigator_stage].stage.[INSTANCEServerProperties] base
+    FROM stage.[INSTANCEServerProperties] base
         INNER JOIN dim.hostname host
             ON host.Hostname = base.FQDN
         INNER JOIN dim.productlevel plevel
@@ -1235,11 +1238,10 @@ BEGIN
     WHERE pinsthw.VirtualMachineType = 'HYPERVISOR'
 	and base.projectHashId IN
 		(
-		SELECT projecthashid FROM [why_investigator_stage].[dim].[projecthashid]
-			WHERE Created in(
-								SELECT  
+		SELECT projecthashid FROM [dim].[projecthashid]
+			WHERE Created in(SELECT  
 								 MAX([Created])
-								FROM [why_investigator_stage].[dim].[projecthashid]) 
+								FROM [dim].[projecthashid]) 
   )
 		
     UNION
@@ -1254,7 +1256,7 @@ BEGIN
            pedition.id AS pedition,
            '15' AS counter_ID,
            1 AS Value
-    FROM [why_investigator_stage].stage.[INSTANCEServerProperties] base
+    FROM stage.[INSTANCEServerProperties] base
         INNER JOIN dim.hostname host
             ON host.Hostname = base.FQDN
         INNER JOIN dim.productlevel plevel
@@ -1277,11 +1279,11 @@ BEGIN
             ON phash.projectHashId = base.projectHashId
 			WHERE base.projectHashId IN
 		(
-		SELECT projecthashid FROM [why_investigator_stage].[dim].[projecthashid]
+		SELECT projecthashid FROM [dim].[projecthashid]
 			WHERE Created in(
 								SELECT  
 								 MAX([Created])
-								FROM [why_investigator_stage].[dim].[projecthashid]) 
+								FROM [dim].[projecthashid]) 
   )
 		
     UNION
@@ -1296,7 +1298,7 @@ BEGIN
            pedition.id AS pedition,
            '20' AS counter_ID,
            pcountdb.MengeDB AS Value
-    FROM [why_investigator_stage].stage.[INSTANCEServerProperties] base
+    FROM stage.[INSTANCEServerProperties] base
         INNER JOIN dim.hostname host
             ON host.Hostname = base.FQDN
         INNER JOIN dim.productlevel plevel
@@ -1319,11 +1321,11 @@ BEGIN
             ON phash.projectHashId = base.projectHashId
 			WHERE base.projectHashId IN
 		(
-		SELECT projecthashid FROM [why_investigator_stage].[dim].[projecthashid]
+		SELECT projecthashid FROM [dim].[projecthashid]
 			WHERE Created in(
 								SELECT  
 								 MAX([Created])
-								FROM [why_investigator_stage].[dim].[projecthashid]) 
+								FROM [dim].[projecthashid]) 
   )
 		
     UNION
@@ -1338,7 +1340,7 @@ BEGIN
            pedition.id AS pedition,
            '27' AS counter_ID,
            pinstme.[memory_utilization_percentage] AS Value
-    FROM [why_investigator_stage].stage.[INSTANCEServerProperties] base
+    FROM stage.[INSTANCEServerProperties] base
         INNER JOIN dim.hostname host
             ON host.Hostname = base.FQDN
         INNER JOIN dim.productlevel plevel
@@ -1371,7 +1373,7 @@ BEGIN
            pedition.id AS pedition,
            '25' AS counter_ID,
            pinstme.[SQLServerMemoryUsageMB] AS Value
-    FROM [why_investigator_stage].stage.[INSTANCEServerProperties] base
+    FROM stage.[INSTANCEServerProperties] base
         INNER JOIN dim.hostname host
             ON host.Hostname = base.FQDN
         INNER JOIN dim.productlevel plevel
@@ -1395,12 +1397,253 @@ BEGIN
 
 			WHERE base.projectHashId IN
 		(
-		SELECT projecthashid FROM [why_investigator_stage].[dim].[projecthashid]
+		SELECT projecthashid FROM [dim].[projecthashid]
 			WHERE Created in(
 								SELECT  
 								 MAX([Created])
-								FROM [why_investigator_stage].[dim].[projecthashid]) 
+								FROM [dim].[projecthashid]) 
   )
+  SELECT base.datetimeid,
+	phash.id,
+	host.id as hostid,
+	plevel.id AS plevelid,
+	pmajor.id AS pmajorid,
+	pminor.id AS pminorid,
+	pupdate.id AS pProductUpdateLevelid,
+	pinstance.id AS pinstanceid,
+	pedition.id AS pedition,
+	'40' AS counter_ID,
+	CASE
+		WHEN cpuutil.SystemMemoryState = 'Available physical memory is high' THEN 1
+		ELSE 0
+	END AS Value
+FROM stage.INSTANCEServerProperties base
+	INNER JOIN dim.hostname host
+        ON host.Hostname = base.FQDN
+    INNER JOIN dim.productlevel plevel
+        ON plevel.ProductLevel = base.ProductLevel
+    INNER JOIN dim.productmajorVersion pmajor
+        ON base.ProductMajorVersion = pmajor.ProductMajorVersion
+    INNER JOIN dim.ProductVersion pminor
+        ON base.ProductVersion = pminor.ProductVersion
+    INNER JOIN dim.ProductUpdateLevel pupdate
+        ON base.ProductUpdateLevel = pupdate.ProductUpdateLevel
+    INNER JOIN dim.edition pedition
+        ON base.Edition = pedition.Edition
+    INNER JOIN dim.instance pinstance
+        ON base.ServerName = pinstance.name
+	INNER JOIN stage.INSTANCECPUUtilization cpuutil
+		ON cpuutil.projectHashId = base.projectHashId
+			AND cpuutil.ServerName = base.ServerName
+			AND cpuutil.FQDN = host.Hostname
+	INNER JOIN dim.projecthashid phash
+		ON phash.projectHashId = base.projectHashId
+		WHERE base.projectHashId IN (SELECT projectHashId FROM dim.projectHashId WHERE Created IN (SELECT MAX(Created) FROM dim.projecthashid))
+UNION
+SELECT base.datetimeid,
+	phash.id,
+	host.id as hostid,
+	plevel.id AS plevelid,
+	pmajor.id AS pmajorid,
+	pminor.id AS pminorid,
+	pupdate.id AS pProductUpdateLevelid,
+	pinstance.id AS pinstanceid,
+	pedition.id AS pedition,
+	'34' AS counter_ID,
+	cpuutil.SQLProcessUtilization5 as Value
+FROM stage.INSTANCEServerProperties base
+	INNER JOIN dim.hostname host
+        ON host.Hostname = base.FQDN
+    INNER JOIN dim.productlevel plevel
+        ON plevel.ProductLevel = base.ProductLevel
+    INNER JOIN dim.productmajorVersion pmajor
+        ON base.ProductMajorVersion = pmajor.ProductMajorVersion
+    INNER JOIN dim.ProductVersion pminor
+        ON base.ProductVersion = pminor.ProductVersion
+    INNER JOIN dim.ProductUpdateLevel pupdate
+        ON base.ProductUpdateLevel = pupdate.ProductUpdateLevel
+    INNER JOIN dim.edition pedition
+        ON base.Edition = pedition.Edition
+    INNER JOIN dim.instance pinstance
+        ON base.ServerName = pinstance.name
+	INNER JOIN stage.INSTANCECPUUtilization cpuutil
+		ON cpuutil.projectHashId = base.projectHashId
+			AND cpuutil.ServerName = base.ServerName
+			AND cpuutil.FQDN = host.Hostname
+	INNER JOIN dim.projecthashid phash
+		ON phash.projectHashId = base.projectHashId
+		WHERE base.projectHashId IN (SELECT projectHashId FROM dim.projectHashId WHERE Created IN (SELECT MAX(Created) FROM dim.projecthashid))
+UNION
+SELECT base.datetimeid,
+	phash.id,
+	host.id as hostid,
+	plevel.id AS plevelid,
+	pmajor.id AS pmajorid,
+	pminor.id AS pminorid,
+	pupdate.id AS pProductUpdateLevelid,
+	pinstance.id AS pinstanceid,
+	pedition.id AS pedition,
+	'35' AS counter_ID,
+	cpuutil.SQLProcessUtilization10 as Value
+FROM stage.INSTANCEServerProperties base
+	INNER JOIN dim.hostname host
+        ON host.Hostname = base.FQDN
+    INNER JOIN dim.productlevel plevel
+        ON plevel.ProductLevel = base.ProductLevel
+    INNER JOIN dim.productmajorVersion pmajor
+        ON base.ProductMajorVersion = pmajor.ProductMajorVersion
+    INNER JOIN dim.ProductVersion pminor
+        ON base.ProductVersion = pminor.ProductVersion
+    INNER JOIN dim.ProductUpdateLevel pupdate
+        ON base.ProductUpdateLevel = pupdate.ProductUpdateLevel
+    INNER JOIN dim.edition pedition
+        ON base.Edition = pedition.Edition
+    INNER JOIN dim.instance pinstance
+        ON base.ServerName = pinstance.name
+	INNER JOIN stage.INSTANCECPUUtilization cpuutil
+		ON cpuutil.projectHashId = base.projectHashId
+			AND cpuutil.ServerName = base.ServerName
+			AND cpuutil.FQDN = host.Hostname
+	INNER JOIN dim.projecthashid phash
+		ON phash.projectHashId = base.projectHashId
+		WHERE base.projectHashId IN (SELECT projectHashId FROM dim.projectHashId WHERE Created IN (SELECT MAX(Created) FROM dim.projecthashid))
+UNION
+SELECT base.datetimeid,
+	phash.id,
+	host.id as hostid,
+	plevel.id AS plevelid,
+	pmajor.id AS pmajorid,
+	pminor.id AS pminorid,
+	pupdate.id AS pProductUpdateLevelid,
+	pinstance.id AS pinstanceid,
+	pedition.id AS pedition,
+	'36' AS counter_ID,
+	cpuutil.SQLProcessUtilization15 as Value
+FROM stage.INSTANCEServerProperties base
+	INNER JOIN dim.hostname host
+        ON host.Hostname = base.FQDN
+    INNER JOIN dim.productlevel plevel
+        ON plevel.ProductLevel = base.ProductLevel
+    INNER JOIN dim.productmajorVersion pmajor
+        ON base.ProductMajorVersion = pmajor.ProductMajorVersion
+    INNER JOIN dim.ProductVersion pminor
+        ON base.ProductVersion = pminor.ProductVersion
+    INNER JOIN dim.ProductUpdateLevel pupdate
+        ON base.ProductUpdateLevel = pupdate.ProductUpdateLevel
+    INNER JOIN dim.edition pedition
+        ON base.Edition = pedition.Edition
+    INNER JOIN dim.instance pinstance
+        ON base.ServerName = pinstance.name
+	INNER JOIN stage.INSTANCECPUUtilization cpuutil
+		ON cpuutil.projectHashId = base.projectHashId
+			AND cpuutil.ServerName = base.ServerName
+			AND cpuutil.FQDN = host.Hostname
+	INNER JOIN dim.projecthashid phash
+		ON phash.projectHashId = base.projectHashId
+		WHERE base.projectHashId IN (SELECT projectHashId FROM dim.projectHashId WHERE Created IN (SELECT MAX(Created) FROM dim.projecthashid))
+UNION
+SELECT base.datetimeid,
+	phash.id,
+	host.id as hostid,
+	plevel.id AS plevelid,
+	pmajor.id AS pmajorid,
+	pminor.id AS pminorid,
+	pupdate.id AS pProductUpdateLevelid,
+	pinstance.id AS pinstanceid,
+	pedition.id AS pedition,
+	'37' AS counter_ID,
+	cpuutil.SQLProcessUtilization5 as Value
+FROM stage.INSTANCEServerProperties base
+	INNER JOIN dim.hostname host
+        ON host.Hostname = base.FQDN
+    INNER JOIN dim.productlevel plevel
+        ON plevel.ProductLevel = base.ProductLevel
+    INNER JOIN dim.productmajorVersion pmajor
+        ON base.ProductMajorVersion = pmajor.ProductMajorVersion
+    INNER JOIN dim.ProductVersion pminor
+        ON base.ProductVersion = pminor.ProductVersion
+    INNER JOIN dim.ProductUpdateLevel pupdate
+        ON base.ProductUpdateLevel = pupdate.ProductUpdateLevel
+    INNER JOIN dim.edition pedition
+        ON base.Edition = pedition.Edition
+    INNER JOIN dim.instance pinstance
+        ON base.ServerName = pinstance.name
+	INNER JOIN stage.INSTANCECPUUtilization cpuutil
+		ON cpuutil.projectHashId = base.projectHashId
+			AND cpuutil.ServerName = base.ServerName
+			AND cpuutil.FQDN = host.Hostname
+	INNER JOIN dim.projecthashid phash
+		ON phash.projectHashId = base.projectHashId
+		WHERE base.projectHashId IN (SELECT projectHashId FROM dim.projectHashId WHERE Created IN (SELECT MAX(Created) FROM dim.projecthashid))
+UNION
+SELECT base.datetimeid,
+	phash.id,
+	host.id as hostid,
+	plevel.id AS plevelid,
+	pmajor.id AS pmajorid,
+	pminor.id AS pminorid,
+	pupdate.id AS pProductUpdateLevelid,
+	pinstance.id AS pinstanceid,
+	pedition.id AS pedition,
+	'38' AS counter_ID,
+	cpuutil.MaxServerMemory as Value
+FROM stage.INSTANCEServerProperties base
+	INNER JOIN dim.hostname host
+        ON host.Hostname = base.FQDN
+    INNER JOIN dim.productlevel plevel
+        ON plevel.ProductLevel = base.ProductLevel
+    INNER JOIN dim.productmajorVersion pmajor
+        ON base.ProductMajorVersion = pmajor.ProductMajorVersion
+    INNER JOIN dim.ProductVersion pminor
+        ON base.ProductVersion = pminor.ProductVersion
+    INNER JOIN dim.ProductUpdateLevel pupdate
+        ON base.ProductUpdateLevel = pupdate.ProductUpdateLevel
+    INNER JOIN dim.edition pedition
+        ON base.Edition = pedition.Edition
+    INNER JOIN dim.instance pinstance
+        ON base.ServerName = pinstance.name
+	INNER JOIN stage.INSTANCECPUUtilization cpuutil
+		ON cpuutil.projectHashId = base.projectHashId
+			AND cpuutil.ServerName = base.ServerName
+			AND cpuutil.FQDN = host.Hostname
+	INNER JOIN dim.projecthashid phash
+		ON phash.projectHashId = base.projectHashId
+		WHERE base.projectHashId IN (SELECT projectHashId FROM dim.projectHashId WHERE Created IN (SELECT MAX(Created) FROM dim.projecthashid))
+UNION
+SELECT base.datetimeid,
+	phash.id,
+	host.id as hostid,
+	plevel.id AS plevelid,
+	pmajor.id AS pmajorid,
+	pminor.id AS pminorid,
+	pupdate.id AS pProductUpdateLevelid,
+	pinstance.id AS pinstanceid,
+	pedition.id AS pedition,
+	'39' AS counter_ID,
+	cpuutil.PageLifeExpectancy as Value
+FROM stage.INSTANCEServerProperties base
+	INNER JOIN dim.hostname host
+        ON host.Hostname = base.FQDN
+    INNER JOIN dim.productlevel plevel
+        ON plevel.ProductLevel = base.ProductLevel
+    INNER JOIN dim.productmajorVersion pmajor
+        ON base.ProductMajorVersion = pmajor.ProductMajorVersion
+    INNER JOIN dim.ProductVersion pminor
+        ON base.ProductVersion = pminor.ProductVersion
+    INNER JOIN dim.ProductUpdateLevel pupdate
+        ON base.ProductUpdateLevel = pupdate.ProductUpdateLevel
+    INNER JOIN dim.edition pedition
+        ON base.Edition = pedition.Edition
+    INNER JOIN dim.instance pinstance
+        ON base.ServerName = pinstance.name
+	INNER JOIN stage.INSTANCECPUUtilization cpuutil
+		ON cpuutil.projectHashId = base.projectHashId
+			AND cpuutil.ServerName = base.ServerName
+			AND cpuutil.FQDN = host.Hostname
+	INNER JOIN dim.projecthashid phash
+		ON phash.projectHashId = base.projectHashId
+		WHERE base.projectHashId IN (SELECT projectHashId FROM dim.projectHashId WHERE Created IN (SELECT MAX(Created) FROM dim.projecthashid))
+
 		
     PRINT 'FaktenTab Userinfo Sysadmin Start / Create';
 
@@ -1422,7 +1665,7 @@ BEGIN
            1 AS [CounterValue],
            dbuser.id,
            inst.id
-    FROM [why_investigator_stage].[stage].[USERSystemAdministratorInfo] base
+    FROM [stage].[USERSystemAdministratorInfo] base
         INNER JOIN dim.projecthashid dimhasid
             ON dimhasid.projectHashId = base.projectHashId
         INNER JOIN dim.hostname host
@@ -1457,7 +1700,7 @@ BEGIN
            1 AS [CounterValue],
            dbuser.id,
            inst.id
-    FROM [why_investigator_stage].[stage].[USERSystemAdministratorInfo] base
+    FROM [stage].[USERSystemAdministratorInfo] base
         INNER JOIN dim.projecthashid dimhasid
             ON dimhasid.projectHashId = base.projectHashId
         INNER JOIN dim.hostname host
@@ -1514,7 +1757,7 @@ BEGIN
 		dimobjectname.id,
 		base.create_date,
 		base.schema_id
-	FROM [why_investigator_stage].[stage].[DATABASEObjectModificationInfo] base
+	FROM [stage].[DATABASEObjectModificationInfo] base
 		INNER JOIN dim.projecthashid dimhashid
 			ON dimhashid.projectHashId = base.projectHashId
 		INNER JOIN dim.hostname host
@@ -1562,7 +1805,7 @@ BEGIN
 		dimobjectname.id,
 		base.create_date,
 		base.schema_id
-	FROM [why_investigator_stage].[stage].[DATABASEObjectModificationInfo] base
+	FROM [stage].[DATABASEObjectModificationInfo] base
 		INNER JOIN dim.projecthashid dimhashid
 			ON dimhashid.projectHashId = base.projectHashId
 		INNER JOIN dim.hostname host
