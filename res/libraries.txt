@@ -794,6 +794,36 @@ SELECT
    (SELECT AVG(CPU_Usage) FROM SQLProcessCPU WHERE row_number BETWEEN 1 AND 5)  AS 'SQLProcessUtilization5',
    GETDATE() AS 'Data Sample Timestamp'
 
+INSTANCE Query Plans Logical Reads
+10.50.2500.0
+false
+instance
+DECLARE @Domain NVARCHAR(100)
+EXEC master.dbo.xp_regread 'HKEY_LOCAL_MACHINE', 'SYSTEM\CurrentControlSet\services\Tcpip\Parameters', N'Domain',@Domain OUTPUT;
+SELECT TOP 50 Cast(SERVERPROPERTY('MachineName') as nvarchar) + '.' + @Domain AS FQDN, @@SERVERNAME AS ServerName,
+	st.text,
+	qp.query_plan,
+	qs.*
+FROM sys.dm_exec_query_stats qs
+CROSS APPLY sys.dm_exec_sql_text(qs.plan_handle) st
+CROSS APPLY sys.dm_exec_query_plan(qs.plan_handle) qp
+ORDER BY total_logical_reads DESC
+
+INSTANCE Query Plans CPU Bounds
+10.50.2500.0
+false
+instance
+DECLARE @Domain NVARCHAR(100)
+EXEC master.dbo.xp_regread 'HKEY_LOCAL_MACHINE', 'SYSTEM\CurrentControlSet\services\Tcpip\Parameters', N'Domain',@Domain OUTPUT;
+SELECT TOP 50 Cast(SERVERPROPERTY('MachineName') as nvarchar) + '.' + @Domain AS FQDN, @@SERVERNAME AS ServerName,
+	st.text,
+	qp.query_plan,
+	qs.*
+FROM sys.dm_exec_query_stats qs
+CROSS APPLY sys.dm_exec_sql_text(qs.plan_handle) st
+CROSS APPLY sys.dm_exec_query_plan(qs.plan_handle) qp
+ORDER BY total_worker_time DESC
+
 ########################################################################################################################
 #                                                                                                                      #
 #                                 SQL Server 2012 Diagnostic Information Queries                                       #
