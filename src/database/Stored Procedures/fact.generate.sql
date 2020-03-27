@@ -6,6 +6,7 @@ GO
 
 
 
+
 -- =============================================
 -- Author:		Benedikt Schackenberg
 -- Create date: 07.04.2019
@@ -1732,31 +1733,18 @@ FROM stage.INSTANCEServerProperties base
 	
 	PRINT 'FaktenTab ObjectModification Start/Create'
 
-	INSERT INTO [fact].[ObjectModification]
-	(
-		[DatetimeId],
-		[ProjectHashId],
-		[HostnameId],
-		[DatabaseId],
-		[instance],
-		[CounterId],
-		[CounterValue],
-		[TypeDescriptionId],
-		[ObjectNameId],
-		[Date],
-		[SchemaId]
-	)
 	SELECT LEFT([dbo].[fn_generate_bigint](CONVERT(DATETIME, base.create_date, 110)), 12) AS datetimeid,
-		dimhashid.id,
-		host.id,
-		db.id,
-		ins.id,
+		dimhashid.id AS ProjectHashId,
+		host.id AS HostnameId,
+		db.id AS DatabaseId,
+		ins.id AS instance,
 		'32' AS CounterId,
 		1 AS CounterValue,
-		dimobjecttype.id,
-		dimobjectname.id,
+		dimobjecttype.id AS TypeDescriptionId,
+		dimobjectname.id AS ObjectNameId,
 		base.create_date,
-		base.schema_id
+		base.schema_id AS SchemaId
+		INTO #OMTemp
 	FROM [stage].[DATABASEObjectModificationInfo] base
 		INNER JOIN dim.projecthashid dimhashid
 			ON dimhashid.projectHashId = base.projectHashId
@@ -1776,14 +1764,6 @@ FROM stage.INSTANCEServerProperties base
                AND host.id = dimobjectname.[host_id]
                AND dimobjectname.[Name] = base.name
                AND dimobjectname.db_instance_id = diminstance.id
-	WHERE base.projectHashId NOT IN
-          (
-              SELECT DISTINCT
-                     hashid.projectHashId
-              FROM fact.[ObjectModification] base1
-                  INNER JOIN dim.projecthashid hashid
-                      ON hashid.id = base1.projectHashId
-          )
 	GROUP BY LEFT([dbo].[fn_generate_bigint](CONVERT(DATETIME, base.create_date, 110)), 12),
              dimhashid.id,
              host.id,
@@ -1793,18 +1773,18 @@ FROM stage.INSTANCEServerProperties base
 			 dimobjectname.id,
 			 base.create_date,
 			 base.schema_id
-	UNION
-	SELECT LEFT([dbo].[fn_generate_bigint](CONVERT(DATETIME, base.modify_date, 110)), 12) AS datetimeid,
-		dimhashid.id,
-		host.id,
-		db.id,
-		ins.id,
+UNION
+SELECT LEFT([dbo].[fn_generate_bigint](CONVERT(DATETIME, base.modify_date, 110)), 12) AS datetimeid,
+		dimhashid.id AS ProjectHashId,
+		host.id AS HostnameId,
+		db.id AS DatabaseId,
+		ins.id AS instance,
 		'33' AS CounterId,
 		1 AS CounterValue,
-		dimobjecttype.id,
-		dimobjectname.id,
+		dimobjecttype.id AS TypeDescriptionId,
+		dimobjectname.id AS ObjectNameId,
 		base.create_date,
-		base.schema_id
+		base.schema_id AS SchemaId
 	FROM [stage].[DATABASEObjectModificationInfo] base
 		INNER JOIN dim.projecthashid dimhashid
 			ON dimhashid.projectHashId = base.projectHashId
@@ -1824,14 +1804,6 @@ FROM stage.INSTANCEServerProperties base
                AND host.id = dimobjectname.[host_id]
                AND dimobjectname.[Name] = base.name
                AND dimobjectname.db_instance_id = diminstance.id
-	WHERE base.projectHashId NOT IN
-          (
-              SELECT DISTINCT
-                     hashid.projectHashId
-              FROM fact.[ObjectModification] base1
-                  INNER JOIN dim.projecthashid hashid
-                      ON hashid.id = base1.projectHashId
-          )
 	GROUP BY LEFT([dbo].[fn_generate_bigint](CONVERT(DATETIME, base.modify_date, 110)), 12),
              dimhashid.id,
              host.id,
@@ -1840,7 +1812,35 @@ FROM stage.INSTANCEServerProperties base
 			 dimobjecttype.id,
 			 dimobjectname.id,
 			 base.create_date,
-			 base.schema_id;
+			 base.schema_id
+
+INSERT INTO [fact].[ObjectModification]
+	(
+		[DatetimeId],
+		[ProjectHashId],
+		[HostnameId],
+		[DatabaseId],
+		[instance],
+		[CounterId],
+		[CounterValue],
+		[TypeDescriptionId],
+		[ObjectNameId],
+		[Date],
+		[SchemaId]
+	)
+SELECT base.*
+FROM #OMTemp base
+LEFT OUTER JOIN fact.ObjectModification om
+ON om.ProjectHashId = base.ProjectHashId AND
+	om.HostnameId = base.HostnameId AND
+	om.DatabaseId = base.DatabaseId AND
+	om.instance = base.instance AND
+	om.TypeDescriptionId = base.TypeDescriptionId AND
+	om.ObjectNameId = base.ObjectNameId AND
+	om.SchemaId = base.SchemaId AND
+	om.DatetimeId = base.datetimeid
+
+DROP TABLE #OMTEMP;
 
 	PRINT 'FaktenTab ObjectModification Finished'
 
