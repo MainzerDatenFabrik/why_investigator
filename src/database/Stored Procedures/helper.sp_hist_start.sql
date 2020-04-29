@@ -12,41 +12,55 @@ BEGIN
     -- create new deployment id for current start
     SET @deployment_id = NEWID();
 
-	IF(NOT EXISTS(SELECT * FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_SCHEMA = 'helper' AND TABLE_NAME = 'HistDeploymentId'))
-	BEGIN
-		CREATE TABLE [helper].[HistDeploymentId]
-		(
-			[timestamp] [DATETIME] NOT NULL,
-			[id] INT IDENTITY(1, 1) NOT NULL,
-			[deployment_id] UNIQUEIDENTIFIER NOT NULL,
-			[user_name] [NVARCHAR](1000) NOT NULL
-		);
-		-- DROP TABLE [helper].[HistDeploymentId]
-	END
+    IF (NOT EXISTS
+    (
+        SELECT *
+        FROM INFORMATION_SCHEMA.TABLES
+        WHERE TABLE_SCHEMA = 'helper'
+              AND TABLE_NAME = 'HistDeploymentId'
+    )
+       )
+    BEGIN
+        CREATE TABLE [helper].[HistDeploymentId]
+        (
+            [timestamp] [DATETIME] NOT NULL,
+            [id] INT IDENTITY(1, 1) NOT NULL,
+            [deployment_id] UNIQUEIDENTIFIER NOT NULL,
+            [user_name] [NVARCHAR](1000) NOT NULL
+        );
+    -- DROP TABLE [helper].[HistDeploymentId]
+    END;
 
     -- store the current deployment id in the table
     INSERT INTO [helper].[HistDeploymentId]
     (
         [timestamp],
         [deployment_id],
-		[user_name]
+        [user_name]
     )
     SELECT GETDATE(),
            @deployment_id,
-		   ORIGINAL_LOGIN();
+           ORIGINAL_LOGIN();
 
     -- Databases
 
-	IF(NOT EXISTS(SELECT * FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_SCHEMA = 'helper' AND TABLE_NAME = 'HistDatabases'))
-	BEGIN
-		CREATE TABLE [helper].[HistDatabases]
-		(
-			[timestamp] [DATETIME] NOT NULL,
-			[database_name] [NVARCHAR](1000) NOT NULL,
-			[deployment_type] [NVARCHAR](1000) NOT NULL,
-			[deployment_id] UNIQUEIDENTIFIER NOT NULL
-		);
-	END
+    IF (NOT EXISTS
+    (
+        SELECT *
+        FROM INFORMATION_SCHEMA.TABLES
+        WHERE TABLE_SCHEMA = 'helper'
+              AND TABLE_NAME = 'HistDatabases'
+    )
+       )
+    BEGIN
+        CREATE TABLE [helper].[HistDatabases]
+        (
+            [timestamp] [DATETIME] NOT NULL,
+            [database_name] [NVARCHAR](1000) NOT NULL,
+            [deployment_type] [NVARCHAR](1000) NOT NULL,
+            [deployment_id] UNIQUEIDENTIFIER NOT NULL
+        );
+    END;
 
     -- store the name of all databases currently present on the system in the table 
     INSERT INTO [helper].[HistDatabases]
@@ -61,22 +75,30 @@ BEGIN
            'START',
            @deployment_id
     FROM sys.databases
-    WHERE [database_id] NOT IN ( 1, 2, 3, 4 );
+    WHERE [database_id] NOT IN ( 1, 2, 3, 4 )
+          AND name NOT IN ( 'DWConfiguration', 'DWDiagnostics', 'DWQueue' );
 
     -- Logins
 
-	IF(NOT EXISTS(SELECT * FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_SCHEMA = 'helper' AND TABLE_NAME = 'HistLogins'))
-	BEGIN
-		CREATE TABLE [helper].[HistLogins]
-		(
-			[timestamp] [DATETIME] NOT NULL,
-			[login_name] [NVARCHAR](1000) NOT NULL,
-			[object_definition] [NVARCHAR](MAX) NULL,
-			[deployment_type] [NVARCHAR](1000) NOT NULL,
-			[deployment_id] UNIQUEIDENTIFIER NOT NULL
-		);
-	END
-    
+    IF (NOT EXISTS
+    (
+        SELECT *
+        FROM INFORMATION_SCHEMA.TABLES
+        WHERE TABLE_SCHEMA = 'helper'
+              AND TABLE_NAME = 'HistLogins'
+    )
+       )
+    BEGIN
+        CREATE TABLE [helper].[HistLogins]
+        (
+            [timestamp] [DATETIME] NOT NULL,
+            [login_name] [NVARCHAR](1000) NOT NULL,
+            [object_definition] [NVARCHAR](MAX) NULL,
+            [deployment_type] [NVARCHAR](1000) NOT NULL,
+            [deployment_id] UNIQUEIDENTIFIER NOT NULL
+        );
+    END;
+
 
     DECLARE @SID_varbinary VARBINARY(85);
     DECLARE @SID_string VARCHAR(514);
@@ -215,16 +237,23 @@ BEGIN
 
     -- Agent Jobs
 
-    IF(NOT EXISTS(SELECT * FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_SCHEMA = 'helper' AND TABLE_NAME = 'HistAgentJobs'))
-	BEGIN
-		CREATE TABLE [helper].[HistAgentJobs]
-		(
-			[timestamp] [DATETIME] NOT NULL,
-			[job_name] [NVARCHAR](1000) NOT NULL,
-			[deployment_type] [NVARCHAR](1000) NOT NULL,
-			[deployment_id] UNIQUEIDENTIFIER NOT NULL
-		);
-	END
+    IF (NOT EXISTS
+    (
+        SELECT *
+        FROM INFORMATION_SCHEMA.TABLES
+        WHERE TABLE_SCHEMA = 'helper'
+              AND TABLE_NAME = 'HistAgentJobs'
+    )
+       )
+    BEGIN
+        CREATE TABLE [helper].[HistAgentJobs]
+        (
+            [timestamp] [DATETIME] NOT NULL,
+            [job_name] [NVARCHAR](1000) NOT NULL,
+            [deployment_type] [NVARCHAR](1000) NOT NULL,
+            [deployment_id] UNIQUEIDENTIFIER NOT NULL
+        );
+    END;
 
     -- Store the name of all agent jobs currently present on the system in the table
     INSERT INTO [helper].[HistAgentJobs]
@@ -242,17 +271,24 @@ BEGIN
 
     -- Linked Servers
 
-	 IF(NOT EXISTS(SELECT * FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_SCHEMA = 'helper' AND TABLE_NAME = 'HistLinkedServers'))
-	 BEGIN
-		CREATE TABLE [helper].[HistLinkedServers]
-		(
-			[timestamp] [DATETIME] NOT NULL,
-			[server_name] [NVARCHAR](1000) NOT NULL,
-			[object_definition] [NVARCHAR](MAX) NULL,
-			[deployment_type] [NVARCHAR](1000) NOT NULL,
-			[deployment_id] UNIQUEIDENTIFIER NOT NULL
-		);
-	 END
+    IF (NOT EXISTS
+    (
+        SELECT *
+        FROM INFORMATION_SCHEMA.TABLES
+        WHERE TABLE_SCHEMA = 'helper'
+              AND TABLE_NAME = 'HistLinkedServers'
+    )
+       )
+    BEGIN
+        CREATE TABLE [helper].[HistLinkedServers]
+        (
+            [timestamp] [DATETIME] NOT NULL,
+            [server_name] [NVARCHAR](1000) NOT NULL,
+            [object_definition] [NVARCHAR](MAX) NULL,
+            [deployment_type] [NVARCHAR](1000) NOT NULL,
+            [deployment_id] UNIQUEIDENTIFIER NOT NULL
+        );
+    END;
 
     CREATE TABLE #LSTemp
     (
@@ -379,54 +415,76 @@ BEGIN
 
     -- Views, procs, funcs
 
-	 IF(NOT EXISTS(SELECT * FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_SCHEMA = 'helper' AND TABLE_NAME = 'HistViews'))
-	 BEGIN
-		CREATE TABLE [helper].[HistViews]
-		(
-			[timestamp] [DATETIME] NOT NULL,
-			[view_name] [NVARCHAR](1000) NOT NULL,
-			[schema_name] [NVARCHAR](1000) NOT NULL,
-			[object_definition] [NVARCHAR](MAX) NULL,
-			[database_name] [NVARCHAR](1000) NOT NULL,
-			[deployment_type] [NVARCHAR](1000) NOT NULL,
-			[deployment_id] UNIQUEIDENTIFIER NOT NULL
-		);
-	 END
+    IF (NOT EXISTS
+    (
+        SELECT *
+        FROM INFORMATION_SCHEMA.TABLES
+        WHERE TABLE_SCHEMA = 'helper'
+              AND TABLE_NAME = 'HistViews'
+    )
+       )
+    BEGIN
+        CREATE TABLE [helper].[HistViews]
+        (
+            [timestamp] [DATETIME] NOT NULL,
+            [view_name] [NVARCHAR](1000) NOT NULL,
+            [schema_name] [NVARCHAR](1000) NOT NULL,
+            [object_definition] [NVARCHAR](MAX) NULL,
+            [database_name] [NVARCHAR](1000) NOT NULL,
+            [deployment_type] [NVARCHAR](1000) NOT NULL,
+            [deployment_id] UNIQUEIDENTIFIER NOT NULL
+        );
+    END;
 
-	IF(NOT EXISTS(SELECT * FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_SCHEMA = 'helper' AND TABLE_NAME = 'HistProcedures'))
-	BEGIN 
-		CREATE TABLE [helper].[HistProcedures]
-		(
-			[timestamp] [DATETIME] NOT NULL,
-			[procedure_name] [NVARCHAR](1000) NOT NULL,
-			[schema_name] [NVARCHAR](1000) NOT NULL,
-			[object_definition] [NVARCHAR](MAX) NULL,
-			[database_name] [NVARCHAR](1000) NOT NULL,
-			[deployment_type] [NVARCHAR](1000) NOT NULL,
-			[deployment_id] UNIQUEIDENTIFIER NOT NULL
-		);
-	END
+    IF (NOT EXISTS
+    (
+        SELECT *
+        FROM INFORMATION_SCHEMA.TABLES
+        WHERE TABLE_SCHEMA = 'helper'
+              AND TABLE_NAME = 'HistProcedures'
+    )
+       )
+    BEGIN
+        CREATE TABLE [helper].[HistProcedures]
+        (
+            [timestamp] [DATETIME] NOT NULL,
+            [procedure_name] [NVARCHAR](1000) NOT NULL,
+            [schema_name] [NVARCHAR](1000) NOT NULL,
+            [object_definition] [NVARCHAR](MAX) NULL,
+            [database_name] [NVARCHAR](1000) NOT NULL,
+            [deployment_type] [NVARCHAR](1000) NOT NULL,
+            [deployment_id] UNIQUEIDENTIFIER NOT NULL
+        );
+    END;
 
-	IF(NOT EXISTS(SELECT * FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_SCHEMA = 'helper' AND TABLE_NAME = 'HistFunctions'))
-	BEGIN
-		CREATE TABLE [helper].[HistFunctions]
-		(
-			[timestamp] [DATETIME] NOT NULL,
-			[function_name] [NVARCHAR](1000) NOT NULL,
-			[schema_name] [NVARCHAR](1000) NOT NULL,
-			[object_definition] [NVARCHAR](MAX) NULL,
-			[database_name] [NVARCHAR](1000) NOT NULL,
-			[deployment_type] [NVARCHAR](1000) NOT NULL,
-			[deployment_id] UNIQUEIDENTIFIER NOT NULL
-		);
-	END
+    IF (NOT EXISTS
+    (
+        SELECT *
+        FROM INFORMATION_SCHEMA.TABLES
+        WHERE TABLE_SCHEMA = 'helper'
+              AND TABLE_NAME = 'HistFunctions'
+    )
+       )
+    BEGIN
+        CREATE TABLE [helper].[HistFunctions]
+        (
+            [timestamp] [DATETIME] NOT NULL,
+            [function_name] [NVARCHAR](1000) NOT NULL,
+            [schema_name] [NVARCHAR](1000) NOT NULL,
+            [object_definition] [NVARCHAR](MAX) NULL,
+            [database_name] [NVARCHAR](1000) NOT NULL,
+            [deployment_type] [NVARCHAR](1000) NOT NULL,
+            [deployment_id] UNIQUEIDENTIFIER NOT NULL
+        );
+    END;
 
     DECLARE @db NVARCHAR(1000);
 
     SELECT [name]
     INTO #dbs
     FROM sys.databases
-    WHERE [database_id] NOT IN ( 1, 2, 3, 4, 5, 6, 7 );
+    WHERE [database_id] NOT IN ( 1, 2, 3, 4 )
+          AND [name] NOT IN ( 'DWConfiguration', 'DWDiagnostics', 'DWQueue' );
 
     -- temp tabs for loop
     CREATE TABLE #views_temp
@@ -560,19 +618,26 @@ BEGIN
 
     ---- Tables
 
-    IF(NOT EXISTS(SELECT * FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_SCHEMA = 'helper' AND TABLE_NAME = 'HistFunctions'))
-	BEGIN
-		CREATE TABLE [helper].[HistTables]
-		(
-			[timestamp] [DATETIME] NOT NULL,
-			[schema_name] [NVARCHAR](1000) NOT NULL,
-			[table_name] [NVARCHAR](1000) NOT NULL,
-			[database_name] [NVARCHAR](1000) NOT NULL,
-			[definition] [NVARCHAR](MAX) NULL,
-			[deployment_type] [NVARCHAR](1000) NOT NULL,
-			[deployment_id] UNIQUEIDENTIFIER NOT NULL
-		);
-	END
+    IF (NOT EXISTS
+    (
+        SELECT *
+        FROM INFORMATION_SCHEMA.TABLES
+        WHERE TABLE_SCHEMA = 'helper'
+              AND TABLE_NAME = 'HistTables'
+    )
+       )
+    BEGIN
+        CREATE TABLE [helper].[HistTables]
+        (
+            [timestamp] [DATETIME] NOT NULL,
+            [schema_name] [NVARCHAR](1000) NOT NULL,
+            [table_name] [NVARCHAR](1000) NOT NULL,
+            [database_name] [NVARCHAR](1000) NOT NULL,
+            [definition] [NVARCHAR](MAX) NULL,
+            [deployment_type] [NVARCHAR](1000) NOT NULL,
+            [deployment_id] UNIQUEIDENTIFIER NOT NULL
+        );
+    END;
 
     DECLARE @object_name NVARCHAR(2000);
 
@@ -606,6 +671,7 @@ BEGIN
               AND name <> 'DWDiagnostics'
               AND name <> 'DWQueue'
               AND name <> 'master'
+              AND name <> 'model'
         ORDER BY [name]
         FOR XML PATH(''), TYPE
     ).value('.', 'nvarchar(max)');
@@ -707,7 +773,10 @@ BEGIN
            @deployment_id
     FROM #tmp_tables2;
 
-	SELECT 'Prozedur gestartet.' AS [Status]
+    SELECT 'Prozedur gestartet.' AS [Status],
+           ORIGINAL_LOGIN() AS [Started by],
+           @deployment_id AS [Deployment Id],
+           'EXEC helper.sp_hist_stop @deploymentId = ''' + CONVERT(NVARCHAR(MAX), @deployment_id) + ''', @debug = 0' AS [Stop Procedure Statement];
 
 END;
 GO

@@ -4,31 +4,35 @@ SET ANSI_NULLS ON
 GO
 
 CREATE PROCEDURE [helper].[sp_hist_stop]
-(@deploymentId UNIQUEIDENTIFIER, @debug int)
+(
+    @deploymentId UNIQUEIDENTIFIER,
+    @debug INT
+)
 AS
 BEGIN
 
-	SET NOCOUNT ON
+    SET NOCOUNT ON;
 
     DECLARE @id INT;
     DECLARE @object_name NVARCHAR(1000);
     DECLARE @object_type NVARCHAR(1000);
     DECLARE @object_definition NVARCHAR(1000);
-   
+
     -- databases
     INSERT INTO [helper].[HistDatabases]
-(
-    [timestamp],
-    [database_name],
-    [deployment_type],
-    [deployment_id]
-)
-SELECT GETDATE(),
-       [name],
-       'ENDE',
-       @deploymentId
-FROM sys.databases
-WHERE [database_id] NOT IN ( 1, 2, 3, 4 );
+    (
+        [timestamp],
+        [database_name],
+        [deployment_type],
+        [deployment_id]
+    )
+    SELECT GETDATE(),
+           [name],
+           'ENDE',
+           @deploymentId
+    FROM sys.databases
+    WHERE [database_id] NOT IN ( 1, 2, 3, 4 )
+          AND [name] NOT IN ( 'DWConfiguration', 'DWDiagnostics', 'DWQueue' );
 
     --logins
     DECLARE @SID_varbinary VARBINARY(85);
@@ -203,138 +207,185 @@ WHERE [database_id] NOT IN ( 1, 2, 3, 4 );
     )
     EXEC sys.sp_linkedservers;
 
-	DECLARE @srv_name NVARCHAR(1000)
-	DECLARE @srv_providername NVARCHAR(1000)
-	DECLARE @srv_product NVARCHAR(1000)
-	DECLARE @srv_datasource NVARCHAR(1000)
-	DECLARE @srv_providerstring NVARCHAR(1000)
-	DECLARE @srv_location NVARCHAR(1000)
-	DECLARE @srv_cat NVARCHAR(1000)
-	DECLARE @definition NVARCHAR(max)
+    DECLARE @srv_name NVARCHAR(1000);
+    DECLARE @srv_providername NVARCHAR(1000);
+    DECLARE @srv_product NVARCHAR(1000);
+    DECLARE @srv_datasource NVARCHAR(1000);
+    DECLARE @srv_providerstring NVARCHAR(1000);
+    DECLARE @srv_location NVARCHAR(1000);
+    DECLARE @srv_cat NVARCHAR(1000);
+    DECLARE @definition NVARCHAR(MAX);
 
-	-- Build linked server create statements from temp tab
-	WHILE(EXISTS(SELECT * FROM #LSTemp))
-	BEGIN
-    
-		SELECT TOP(1) @srv_name = [srv_name] FROM #LSTemp ORDER BY [srv_name]
+    -- Build linked server create statements from temp tab
+    WHILE (EXISTS (SELECT * FROM #LSTemp))
+    BEGIN
 
-		SELECT TOP(1) @srv_providername = [srv_providername] FROM #LSTemp WHERE [srv_name] = @srv_name ORDER BY [srv_name]
-		SELECT TOP(1) @srv_product = [srv_product] FROM #LSTemp WHERE [srv_name] = @srv_name ORDER BY [srv_name]
-		SELECT TOP(1) @srv_datasource = [srv_datasource] FROM #LSTemp WHERE [srv_name] = @srv_name ORDER BY [srv_name]
-		SELECT TOP(1) @srv_providerstring = [srv_providerstring] FROM #LSTemp WHERE [srv_name] = @srv_name ORDER BY [srv_name]
-		SELECT TOP(1) @srv_location = [srv_location] FROM #LSTemp WHERE [srv_name] = @srv_name ORDER BY [srv_name]
-		SELECT TOP(1) @srv_cat = [srv_cat] FROM #LSTemp WHERE [srv_name] = @srv_name ORDER BY [srv_name]
+        SELECT TOP (1)
+               @srv_name = [srv_name]
+        FROM #LSTemp
+        ORDER BY [srv_name];
 
-		SET @definition = 'EXEC sp_addlinkedserver @server=''' + @srv_name + ''''
+        SELECT TOP (1)
+               @srv_providername = [srv_providername]
+        FROM #LSTemp
+        WHERE [srv_name] = @srv_name
+        ORDER BY [srv_name];
+        SELECT TOP (1)
+               @srv_product = [srv_product]
+        FROM #LSTemp
+        WHERE [srv_name] = @srv_name
+        ORDER BY [srv_name];
+        SELECT TOP (1)
+               @srv_datasource = [srv_datasource]
+        FROM #LSTemp
+        WHERE [srv_name] = @srv_name
+        ORDER BY [srv_name];
+        SELECT TOP (1)
+               @srv_providerstring = [srv_providerstring]
+        FROM #LSTemp
+        WHERE [srv_name] = @srv_name
+        ORDER BY [srv_name];
+        SELECT TOP (1)
+               @srv_location = [srv_location]
+        FROM #LSTemp
+        WHERE [srv_name] = @srv_name
+        ORDER BY [srv_name];
+        SELECT TOP (1)
+               @srv_cat = [srv_cat]
+        FROM #LSTemp
+        WHERE [srv_name] = @srv_name
+        ORDER BY [srv_name];
 
-		IF(@srv_product IS NOT NULL)
-		BEGIN
-			SET @definition = @definition + ', @srvproduct=''' + @srv_product + ''''
-		END
+        SET @definition = N'EXEC sp_addlinkedserver @server=''' + @srv_name + N'''';
 
-		IF(@srv_providername IS NOT NULL)
-		BEGIN
-			SET @definition = @definition + ', @provider=''' + @srv_providername + ''''
-		END
+        IF (@srv_product IS NOT NULL)
+        BEGIN
+            SET @definition = @definition + N', @srvproduct=''' + @srv_product + N'''';
+        END;
 
-		IF(@srv_datasource IS NOT NULL)
-		BEGIN
-			SET @definition = @definition + ', @datasrc=''' + @srv_datasource + ''''
-		END
+        IF (@srv_providername IS NOT NULL)
+        BEGIN
+            SET @definition = @definition + N', @provider=''' + @srv_providername + N'''';
+        END;
 
-		IF(@srv_location IS NOT NULL)
-		BEGIN
-			SET @definition = @definition + ', @location=''' + @srv_location + ''''
-		END
+        IF (@srv_datasource IS NOT NULL)
+        BEGIN
+            SET @definition = @definition + N', @datasrc=''' + @srv_datasource + N'''';
+        END;
 
-		IF(@srv_providerstring IS NOT NULL)
-		BEGIN
-			SET @definition = @definition + ', @provstr=''' + @srv_providerstring + ''''
-		END
+        IF (@srv_location IS NOT NULL)
+        BEGIN
+            SET @definition = @definition + N', @location=''' + @srv_location + N'''';
+        END;
 
-		IF(@srv_cat IS NOT NULL)
-		BEGIN
-			SET @definition = @definition + ', @catalog=''' + @srv_cat + ''''
-		END
+        IF (@srv_providerstring IS NOT NULL)
+        BEGIN
+            SET @definition = @definition + N', @provstr=''' + @srv_providerstring + N'''';
+        END;
 
-		INSERT INTO [helper].[HistLinkedServers]
-	 (
-        [timestamp],
-        [server_name],
-        [object_definition],
-        [deployment_type],
-        [deployment_id]
-	 )
-	 SELECT GETDATE(), @srv_name, @definition, 'ENDE', @deploymentId
+        IF (@srv_cat IS NOT NULL)
+        BEGIN
+            SET @definition = @definition + N', @catalog=''' + @srv_cat + N'''';
+        END;
 
-		DELETE #LSTemp WHERE [srv_name] = @srv_name
-	END
+        INSERT INTO [helper].[HistLinkedServers]
+        (
+            [timestamp],
+            [server_name],
+            [object_definition],
+            [deployment_type],
+            [deployment_id]
+        )
+        SELECT GETDATE(),
+               @srv_name,
+               @definition,
+               'ENDE',
+               @deploymentId;
 
-    DECLARE @db NVARCHAR(1000)
+        DELETE #LSTemp
+        WHERE [srv_name] = @srv_name;
+    END;
 
-	SELECT [name] 
-	into #dbs
-	FROM sys.databases WHERE [database_id] NOT IN (1, 2, 3, 4);
+    DECLARE @db NVARCHAR(1000);
 
-	-- temp tabs for loop
-	CREATE TABLE #views_temp(
-		[name] [NVARCHAR](1000) NOT NULL,
-		[schema_name] [NVARCHAR](1000) NOT NULL,
-		[database_name] [NVARCHAR](1000) NOT NULL,
-		[definition] [nvarchar](MAX) NULL
-	)
+    SELECT [name]
+    INTO #dbs
+    FROM sys.databases
+    WHERE [database_id] NOT IN ( 1, 2, 3, 4 )
+          AND [name] NOT IN ( 'DWConfiguration', 'DWDiagnostics', 'DWQueue' );
 
-	CREATE TABLE #procs_temp(
-		[name] [NVARCHAR](1000) NOT NULL,
-		[schema_name] [NVARCHAR](1000) NOT NULL,
-		[database_name] [NVARCHAR](1000) NOT NULL,
-		[definition] [nvarchar](MAX) NULL
-	)
+    -- temp tabs for loop
+    CREATE TABLE #views_temp
+    (
+        [name] [NVARCHAR](1000) NOT NULL,
+        [schema_name] [NVARCHAR](1000) NOT NULL,
+        [database_name] [NVARCHAR](1000) NOT NULL,
+        [definition] [NVARCHAR](MAX) NULL
+    );
 
-	CREATE TABLE #funcs_temp(
-		[name] [NVARCHAR](1000) NOT NULL,
-		[schema_name] [NVARCHAR](1000) NOT NULL,
-		[database_name] [NVARCHAR](1000) NOT NULL,
-		[definition] [nvarchar](MAX) NULL
-	)
+    CREATE TABLE #procs_temp
+    (
+        [name] [NVARCHAR](1000) NOT NULL,
+        [schema_name] [NVARCHAR](1000) NOT NULL,
+        [database_name] [NVARCHAR](1000) NOT NULL,
+        [definition] [NVARCHAR](MAX) NULL
+    );
 
-	WHILE(EXISTS(SELECT * FROM #dbs))
-	BEGIN
+    CREATE TABLE #funcs_temp
+    (
+        [name] [NVARCHAR](1000) NOT NULL,
+        [schema_name] [NVARCHAR](1000) NOT NULL,
+        [database_name] [NVARCHAR](1000) NOT NULL,
+        [definition] [NVARCHAR](MAX) NULL
+    );
 
-		SELECT TOP(1) @db = [name] FROM #dbs ORDER BY [name] ASC
+    WHILE (EXISTS (SELECT * FROM #dbs))
+    BEGIN
 
-		-- views
+        SELECT TOP (1)
+               @db = [name]
+        FROM #dbs
+        ORDER BY [name] ASC;
 
-		SET @stringToExecute = 'Use ' + QUOTENAME(@db) + '
+        -- views
+
+        SET @stringToExecute
+            = N'Use ' + QUOTENAME(@db)
+              + N'
 		
-		SELECT [name], SCHEMA_NAME(schema_id), DB_NAME(parent_object_id), OBJECT_DEFINITION(object_id) FROM sys.views'
+		SELECT [name], SCHEMA_NAME(schema_id), DB_NAME(parent_object_id), OBJECT_DEFINITION(object_id) FROM sys.views';
 
-		INSERT INTO #views_temp
-		EXEC sp_executesql @stringToExecute
+        INSERT INTO #views_temp
+        EXEC sp_executesql @stringToExecute;
 
-		-- procs
+        -- procs
 
-		SET @stringToExecute = 'Use ' + QUOTENAME(@db) + '
+        SET @stringToExecute
+            = N'Use ' + QUOTENAME(@db)
+              + N'
 		
-		SELECT [name], SCHEMA_NAME(schema_id), DB_NAME(parent_object_id), OBJECT_DEFINITION(object_id) FROM sys.procedures'
+		SELECT [name], SCHEMA_NAME(schema_id), DB_NAME(parent_object_id), OBJECT_DEFINITION(object_id) FROM sys.procedures';
 
-		INSERT INTO #procs_temp
-		EXEC sp_executesql @stringToExecute
+        INSERT INTO #procs_temp
+        EXEC sp_executesql @stringToExecute;
 
-		-- functions
+        -- functions
 
-		SET @stringToExecute = 'Use ' + QUOTENAME(@db) + '
+        SET @stringToExecute
+            = N'Use ' + QUOTENAME(@db)
+              + N'
 		
-		SELECT [name], SCHEMA_NAME(schema_id), DB_NAME(parent_object_id), [definition] FROM sys.sql_modules m INNER JOIN sys.objects o ON m.object_id = o.object_id WHERE type_desc LIKE ''%function%'''
+		SELECT [name], SCHEMA_NAME(schema_id), DB_NAME(parent_object_id), [definition] FROM sys.sql_modules m INNER JOIN sys.objects o ON m.object_id = o.object_id WHERE type_desc LIKE ''%function%''';
 
-		INSERT INTO #funcs_temp
-		EXEC sp_executesql @stringToExecute
+        INSERT INTO #funcs_temp
+        EXEC sp_executesql @stringToExecute;
 
-		DELETE #dbs WHERE [name] = @db
-	END
+        DELETE #dbs
+        WHERE [name] = @db;
+    END;
 
-	-- parse views from temp tab
-	INSERT INTO [helper].[HistViews]
+    -- parse views from temp tab
+    INSERT INTO [helper].[HistViews]
     (
         [timestamp],
         [view_name],
@@ -353,8 +404,8 @@ WHERE [database_id] NOT IN ( 1, 2, 3, 4 );
            @deploymentId
     FROM #views_temp;
 
-	-- parse procs from temp tab
-	INSERT INTO [helper].[HistProcedures]
+    -- parse procs from temp tab
+    INSERT INTO [helper].[HistProcedures]
     (
         [timestamp],
         [procedure_name],
@@ -373,8 +424,8 @@ WHERE [database_id] NOT IN ( 1, 2, 3, 4 );
            @deploymentId
     FROM #procs_temp;
 
-	-- prase functions from temp tab
-	INSERT INTO [helper].[HistFunctions]
+    -- prase functions from temp tab
+    INSERT INTO [helper].[HistFunctions]
     (
         [timestamp],
         [function_name],
@@ -402,7 +453,7 @@ WHERE [database_id] NOT IN ( 1, 2, 3, 4 );
         [table_name] [NVARCHAR](1000) NOT NULL
     );
 
-	DECLARE @sql NVARCHAR(max)
+    DECLARE @sql NVARCHAR(MAX);
 
     SELECT @sql
         =
@@ -424,6 +475,7 @@ WHERE [database_id] NOT IN ( 1, 2, 3, 4 );
               AND name <> 'DWDiagnostics'
               AND name <> 'DWQueue'
               AND name <> 'master'
+              AND name <> 'model'
         ORDER BY [name]
         FOR XML PATH(''), TYPE
     ).value('.', 'nvarchar(max)');
@@ -526,562 +578,610 @@ WHERE [database_id] NOT IN ( 1, 2, 3, 4 );
 
 
     -- create delta table from all objects (entries are objects that have been modified)
-        CREATE TABLE #TempDelta
-        (
-            [id] [INT] IDENTITY(1, 1) NOT NULL,
-            [schema_name] [NVARCHAR](1000) NULL,
-            [object_name] [NVARCHAR](1000) NOT NULL,
-            [object_type] [NVARCHAR](1000) NOT NULL,
-            [database_name] [NVARCHAR](1000) NOT NULL,
-            [object_definition] [NVARCHAR](MAX) NOT NULL,
-            [object_definition_count] [INT] NOT NULL,
-            [deployment_id] UNIQUEIDENTIFIER NOT NULL,
-            [deployment_type_count] [INT] NOT NULL
-        );
+    CREATE TABLE #TempDelta
+    (
+        [id] [INT] IDENTITY(1, 1) NOT NULL,
+        [schema_name] [NVARCHAR](1000) NULL,
+        [object_name] [NVARCHAR](1000) NOT NULL,
+        [object_type] [NVARCHAR](1000) NOT NULL,
+        [database_name] [NVARCHAR](1000) NOT NULL,
+        [object_definition] [NVARCHAR](MAX) NOT NULL,
+        [object_definition_count] [INT] NOT NULL,
+        [deployment_id] UNIQUEIDENTIFIER NOT NULL,
+        [deployment_type_count] [INT] NOT NULL
+    );
 
-        -- tables
-        SELECT [schema_name],
-               [table_name] AS [object_name],
-               'TABLE' AS [object_type],
-               [database_name],
-               [definition],
-               COUNT([definition]) AS [definition_count],
-               [deployment_id],
-               COUNT(deployment_type) AS [deploy_type_count]
-        INTO #TempTables
-        FROM [helper].[HistTables]
-		WHERE deployment_id = @deploymentId
-        GROUP BY [schema_name],
-                 [table_name],
-                 [database_name],
-                 [deployment_id],
-                 [definition];
+    -- tables
+    SELECT [schema_name],
+           [table_name] AS [object_name],
+           'TABLE' AS [object_type],
+           [database_name],
+           [definition],
+           COUNT([definition]) AS [definition_count],
+           [deployment_id],
+           COUNT(deployment_type) AS [deploy_type_count]
+    INTO #TempTables
+    FROM [helper].[HistTables]
+    WHERE deployment_id = @deploymentId
+    GROUP BY [schema_name],
+             [table_name],
+             [database_name],
+             [deployment_id],
+             [definition];
 
-		IF(@debug = 1)
-		BEGIN
-			SELECT *
-					FROM #TempTables;
-		END
-        
-        INSERT INTO #TempDelta
-        (
-            [schema_name],
-            [object_name],
-            [object_type],
-            [database_name],
-            [object_definition],
-            [object_definition_count],
-            [deployment_id],
-            [deployment_type_count]
-        )
-        SELECT [t].[schema_name],
-               [t].[object_name],
-               [t].[object_type],
-               [t].[database_name],
-               [t].[definition],
-               [t].[definition_count],
-               [t].[deployment_id],
-               [t].[deploy_type_count]
-        FROM #TempTables [t]
-            INNER JOIN [helper].[HistTables] [h]
-                ON [h].[definition] = [t].[definition]
-                   AND [h].[deployment_id] = [t].[deployment_id]
-        WHERE [t].[definition_count] = 1
-			  AND [t].[deployment_id] = @deploymentId
-              AND [h].[deployment_type] = 'START';
+    IF (@debug = 1)
+    BEGIN
+        SELECT *
+        FROM #TempTables;
+    END;
 
-        -- views
-        SELECT [schema_name],
-               [view_name] AS [object_name],
-               'VIEW' AS [object_type],
-               [database_name],
-               [object_definition],
-               COUNT([object_definition]) AS [definition_count],
-               [deployment_id],
-               COUNT(deployment_type) AS [deploy_type_count]
-        INTO #TempViews
-        FROM [helper].[HistViews]
-		WHERE deployment_id = @deploymentId
-        GROUP BY [schema_name],
-                 [view_name],
-                 [database_name],
-                 [deployment_id],
-                 [object_definition];
+    INSERT INTO #TempDelta
+    (
+        [schema_name],
+        [object_name],
+        [object_type],
+        [database_name],
+        [object_definition],
+        [object_definition_count],
+        [deployment_id],
+        [deployment_type_count]
+    )
+    SELECT [t].[schema_name],
+           [t].[object_name],
+           [t].[object_type],
+           [t].[database_name],
+           [t].[definition],
+           [t].[definition_count],
+           [t].[deployment_id],
+           [t].[deploy_type_count]
+    FROM #TempTables [t]
+        INNER JOIN [helper].[HistTables] [h]
+            ON [h].[definition] = [t].[definition]
+               AND [h].[deployment_id] = [t].[deployment_id]
+    WHERE [t].[definition_count] = 1
+          AND [t].[deployment_id] = @deploymentId
+          AND [h].[deployment_type] = 'START';
 
-		IF(@debug = 1)
-		BEGIN
-			SELECT *
-					FROM #TempViews;
-		END
-        
+    -- views
+    SELECT [schema_name],
+           [view_name] AS [object_name],
+           'VIEW' AS [object_type],
+           [database_name],
+           [object_definition],
+           COUNT([object_definition]) AS [definition_count],
+           [deployment_id],
+           COUNT(deployment_type) AS [deploy_type_count]
+    INTO #TempViews
+    FROM [helper].[HistViews]
+    WHERE deployment_id = @deploymentId
+    GROUP BY [schema_name],
+             [view_name],
+             [database_name],
+             [deployment_id],
+             [object_definition];
 
-        INSERT INTO #TempDelta
-        (
-            [schema_name],
-            [object_name],
-            [object_type],
-            [database_name],
-            [object_definition],
-            [object_definition_count],
-            [deployment_id],
-            [deployment_type_count]
-        )
-        SELECT [t].[schema_name],
-               [t].[object_name],
-               [t].[object_type],
-               [t].[database_name],
-               [t].[object_definition],
-               [t].[definition_count],
-               [t].[deployment_id],
-               [t].[deploy_type_count]
-        FROM #TempViews [t]
-            INNER JOIN [helper].[HistViews] [h]
-                ON [h].[object_definition] = [t].[object_definition]
-                   AND [h].[deployment_id] = [t].[deployment_id]
-        WHERE [t].[definition_count] = 1
-			  AND [t].[deployment_id] = @deploymentId
-              AND [h].[deployment_type] = 'START';
+    IF (@debug = 1)
+    BEGIN
+        SELECT *
+        FROM #TempViews;
+    END;
 
-        -- procedures
-        SELECT [schema_name],
-               [procedure_name] AS [object_name],
-               'PROCEDURE' AS [object_type],
-               [database_name],
-               [object_definition],
-               COUNT([object_definition]) AS [definition_count],
-               [deployment_id],
-               COUNT(deployment_type) AS [deploy_type_count]
-        INTO #TempProcedures
-        FROM [helper].[HistProcedures]
-		WHERE deployment_id = @deploymentId
-        GROUP BY [schema_name],
-                 [procedure_name],
-                 [database_name],
-                 [deployment_id],
-                 [object_definition];
 
-		IF(@debug = 1)
-		BEGIN
-			SELECT *
-					FROM #TempProcedures;
-		END
-        
+    INSERT INTO #TempDelta
+    (
+        [schema_name],
+        [object_name],
+        [object_type],
+        [database_name],
+        [object_definition],
+        [object_definition_count],
+        [deployment_id],
+        [deployment_type_count]
+    )
+    SELECT [t].[schema_name],
+           [t].[object_name],
+           [t].[object_type],
+           [t].[database_name],
+           [t].[object_definition],
+           [t].[definition_count],
+           [t].[deployment_id],
+           [t].[deploy_type_count]
+    FROM #TempViews [t]
+        INNER JOIN [helper].[HistViews] [h]
+            ON [h].[object_definition] = [t].[object_definition]
+               AND [h].[deployment_id] = [t].[deployment_id]
+    WHERE [t].[definition_count] = 1
+          AND [t].[deployment_id] = @deploymentId
+          AND [h].[deployment_type] = 'START';
 
-        INSERT INTO #TempDelta
-        (
-            [schema_name],
-            [object_name],
-            [object_type],
-            [database_name],
-            [object_definition],
-            [object_definition_count],
-            [deployment_id],
-            [deployment_type_count]
-        )
-        SELECT [t].[schema_name],
-               [t].[object_name],
-               [t].[object_type],
-               [t].[database_name],
-               [t].[object_definition],
-               [t].[definition_count],
-               [t].[deployment_id],
-               [t].[deploy_type_count]
-        FROM #TempProcedures [t]
-            INNER JOIN [helper].[HistProcedures] [h]
-                ON [h].[object_definition] = [t].[object_definition]
-                   AND [h].[deployment_id] = [t].[deployment_id]
-        WHERE [t].[definition_count] = 1
-			  AND [t].[deployment_id] = @deploymentId
-              AND [h].[deployment_type] = 'START';
+    -- procedures
+    SELECT [schema_name],
+           [procedure_name] AS [object_name],
+           'PROCEDURE' AS [object_type],
+           [database_name],
+           [object_definition],
+           COUNT([object_definition]) AS [definition_count],
+           [deployment_id],
+           COUNT(deployment_type) AS [deploy_type_count]
+    INTO #TempProcedures
+    FROM [helper].[HistProcedures]
+    WHERE deployment_id = @deploymentId
+    GROUP BY [schema_name],
+             [procedure_name],
+             [database_name],
+             [deployment_id],
+             [object_definition];
 
-        -- functions
-        SELECT [schema_name],
-               [function_name] AS [object_name],
-               'FUNCTION' AS [object_type],
-               [database_name],
-               [object_definition],
-               COUNT([object_definition]) AS [definition_count],
-               [deployment_id],
-               COUNT(deployment_type) AS [deploy_type_count]
-        INTO #TempFunctions
-        FROM [helper].[HistFunctions]
-		WHERE deployment_id = @deploymentId
-        GROUP BY [schema_name],
-                 [function_name],
-                 [database_name],
-                 [deployment_id],
-                 [object_definition];
+    IF (@debug = 1)
+    BEGIN
+        SELECT *
+        FROM #TempProcedures;
+    END;
 
-		IF(@debug = 1)
-		BEGIN
-			SELECT *
-					FROM #TempFunctions;
-		END
 
-        INSERT INTO #TempDelta
-        (
-            [schema_name],
-            [object_name],
-            [object_type],
-            [database_name],
-            [object_definition],
-            [object_definition_count],
-            [deployment_id],
-            [deployment_type_count]
-        )
-        SELECT [t].[schema_name],
-               [t].[object_name],
-               [t].[object_type],
-               [t].[database_name],
-               [t].[object_definition],
-               [t].[definition_count],
-               [t].[deployment_id],
-               [t].[deploy_type_count]
-        FROM #TempFunctions [t]
-            INNER JOIN [helper].[HistFunctions] [h]
-                ON [h].[object_definition] = [t].[object_definition]
-                   AND [h].[deployment_id] = [t].[deployment_id]
-        WHERE [t].[definition_count] = 1
-			  AND [t].[deployment_id] = @deploymentId
-              AND [h].[deployment_type] = 'START';
+    INSERT INTO #TempDelta
+    (
+        [schema_name],
+        [object_name],
+        [object_type],
+        [database_name],
+        [object_definition],
+        [object_definition_count],
+        [deployment_id],
+        [deployment_type_count]
+    )
+    SELECT [t].[schema_name],
+           [t].[object_name],
+           [t].[object_type],
+           [t].[database_name],
+           [t].[object_definition],
+           [t].[definition_count],
+           [t].[deployment_id],
+           [t].[deploy_type_count]
+    FROM #TempProcedures [t]
+        INNER JOIN [helper].[HistProcedures] [h]
+            ON [h].[object_definition] = [t].[object_definition]
+               AND [h].[deployment_id] = [t].[deployment_id]
+    WHERE [t].[definition_count] = 1
+          AND [t].[deployment_id] = @deploymentId
+          AND [h].[deployment_type] = 'START';
 
-        -- linked servers
-        SELECT '' AS [schema_name],
-               [server_name] AS [object_name],
-               'LINKED SERVER' AS [object_type],
-               '' AS [database_name],
-               [object_definition],
-               COUNT([object_definition]) AS [definition_count],
-               [deployment_id],
-               COUNT(deployment_type) AS [deploy_type_count]
-        INTO #TempLinkedServers
-        FROM [helper].[HistLinkedServers]
-		WHERE deployment_id = @deploymentId
-        GROUP BY [server_name],
-                 [deployment_id],
-                 [object_definition];
+    -- functions
+    SELECT [schema_name],
+           [function_name] AS [object_name],
+           'FUNCTION' AS [object_type],
+           [database_name],
+           [object_definition],
+           COUNT([object_definition]) AS [definition_count],
+           [deployment_id],
+           COUNT(deployment_type) AS [deploy_type_count]
+    INTO #TempFunctions
+    FROM [helper].[HistFunctions]
+    WHERE deployment_id = @deploymentId
+    GROUP BY [schema_name],
+             [function_name],
+             [database_name],
+             [deployment_id],
+             [object_definition];
 
-		IF(@debug = 1)
-		BEGIN
-			SELECT *
-					FROM #TempLinkedServers;
-		END
-        
+    IF (@debug = 1)
+    BEGIN
+        SELECT *
+        FROM #TempFunctions;
+    END;
 
-        INSERT INTO #TempDelta
-        (
-            [schema_name],
-            [object_name],
-            [object_type],
-            [database_name],
-            [object_definition],
-            [object_definition_count],
-            [deployment_id],
-            [deployment_type_count]
-        )
-        SELECT [t].[schema_name],
-               [t].[object_name],
-               [t].[object_type],
-               [t].[database_name],
-               [t].[object_definition],
-               [t].[definition_count],
-               [t].[deployment_id],
-               [t].[deploy_type_count]
-        FROM #TempLinkedServers [t]
-            INNER JOIN [helper].[HistLinkedServers] [h]
-                ON [h].[object_definition] = [t].[object_definition]
-                   AND [h].[deployment_id] = [t].[deployment_id]
-        WHERE [t].[definition_count] = 1
-			  AND [t].[deployment_id] = @deploymentId
-              AND [h].[deployment_type] = 'START';
+    INSERT INTO #TempDelta
+    (
+        [schema_name],
+        [object_name],
+        [object_type],
+        [database_name],
+        [object_definition],
+        [object_definition_count],
+        [deployment_id],
+        [deployment_type_count]
+    )
+    SELECT [t].[schema_name],
+           [t].[object_name],
+           [t].[object_type],
+           [t].[database_name],
+           [t].[object_definition],
+           [t].[definition_count],
+           [t].[deployment_id],
+           [t].[deploy_type_count]
+    FROM #TempFunctions [t]
+        INNER JOIN [helper].[HistFunctions] [h]
+            ON [h].[object_definition] = [t].[object_definition]
+               AND [h].[deployment_id] = [t].[deployment_id]
+    WHERE [t].[definition_count] = 1
+          AND [t].[deployment_id] = @deploymentId
+          AND [h].[deployment_type] = 'START';
 
-        -- logins
-        SELECT '' AS [schema_name],
-               [login_name] AS [object_name],
-               'LOGIN' AS [object_type],
-               '' AS [database_name],
-               [object_definition],
-               COUNT([object_definition]) AS [definition_count],
-               [deployment_id],
-               COUNT(deployment_type) AS [deploy_type_count]
-        INTO #TempLogins
-        FROM [helper].[HistLogins]
-		WHERE deployment_id = @deploymentId
-        GROUP BY [login_name],
-                 [deployment_id],
-                 [object_definition];
+    -- linked servers
+    SELECT '' AS [schema_name],
+           [server_name] AS [object_name],
+           'LINKED SERVER' AS [object_type],
+           '' AS [database_name],
+           [object_definition],
+           COUNT([object_definition]) AS [definition_count],
+           [deployment_id],
+           COUNT(deployment_type) AS [deploy_type_count]
+    INTO #TempLinkedServers
+    FROM [helper].[HistLinkedServers]
+    WHERE deployment_id = @deploymentId
+    GROUP BY [server_name],
+             [deployment_id],
+             [object_definition];
 
-		IF(@debug = 1)
-		BEGIN
-			SELECT *
-					FROM #TempLogins;
-		END
-        
+    IF (@debug = 1)
+    BEGIN
+        SELECT *
+        FROM #TempLinkedServers;
+    END;
 
-        INSERT INTO #TempDelta
-        (
-            [schema_name],
-            [object_name],
-            [object_type],
-            [database_name],
-            [object_definition],
-            [object_definition_count],
-            [deployment_id],
-            [deployment_type_count]
-        )
-        SELECT [t].[schema_name],
-               [t].[object_name],
-               [t].[object_type],
-               [t].[database_name],
-               [t].[object_definition],
-               [t].[definition_count],
-               [t].[deployment_id],
-               [t].[deploy_type_count]
-        FROM #TempLogins [t]
-            INNER JOIN [helper].[HistLogins] [h]
-                ON [h].[object_definition] = [t].[object_definition]
-                   AND [h].[deployment_id] = [t].[deployment_id]
-        WHERE [t].[definition_count] = 1
-			  AND [t].[deployment_id] = @deploymentId
-              AND [h].[deployment_type] = 'START';
 
-		IF(@debug = 1)
-		BEGIN
-			SELECT *
-					FROM #TempDelta;
-		END
-        
+    INSERT INTO #TempDelta
+    (
+        [schema_name],
+        [object_name],
+        [object_type],
+        [database_name],
+        [object_definition],
+        [object_definition_count],
+        [deployment_id],
+        [deployment_type_count]
+    )
+    SELECT [t].[schema_name],
+           [t].[object_name],
+           [t].[object_type],
+           [t].[database_name],
+           [t].[object_definition],
+           [t].[definition_count],
+           [t].[deployment_id],
+           [t].[deploy_type_count]
+    FROM #TempLinkedServers [t]
+        INNER JOIN [helper].[HistLinkedServers] [h]
+            ON [h].[object_definition] = [t].[object_definition]
+               AND [h].[deployment_id] = [t].[deployment_id]
+    WHERE [t].[definition_count] = 1
+          AND [t].[deployment_id] = @deploymentId
+          AND [h].[deployment_type] = 'START';
 
-        -- process delta table entries
+    -- logins
+    SELECT '' AS [schema_name],
+           [login_name] AS [object_name],
+           'LOGIN' AS [object_type],
+           '' AS [database_name],
+           [object_definition],
+           COUNT([object_definition]) AS [definition_count],
+           [deployment_id],
+           COUNT(deployment_type) AS [deploy_type_count]
+    INTO #TempLogins
+    FROM [helper].[HistLogins]
+    WHERE deployment_id = @deploymentId
+    GROUP BY [login_name],
+             [deployment_id],
+             [object_definition];
 
-        WHILE EXISTS (SELECT * FROM #TempDelta)
+    IF (@debug = 1)
+    BEGIN
+        SELECT *
+        FROM #TempLogins;
+    END;
+
+
+    INSERT INTO #TempDelta
+    (
+        [schema_name],
+        [object_name],
+        [object_type],
+        [database_name],
+        [object_definition],
+        [object_definition_count],
+        [deployment_id],
+        [deployment_type_count]
+    )
+    SELECT [t].[schema_name],
+           [t].[object_name],
+           [t].[object_type],
+           [t].[database_name],
+           [t].[object_definition],
+           [t].[definition_count],
+           [t].[deployment_id],
+           [t].[deploy_type_count]
+    FROM #TempLogins [t]
+        INNER JOIN [helper].[HistLogins] [h]
+            ON [h].[object_definition] = [t].[object_definition]
+               AND [h].[deployment_id] = [t].[deployment_id]
+    WHERE [t].[definition_count] = 1
+          AND [t].[deployment_id] = @deploymentId
+          AND [h].[deployment_type] = 'START';
+
+    IF (@debug = 1)
+    BEGIN
+        SELECT *
+        FROM #TempDelta;
+    END;
+
+
+    -- process delta table entries
+
+    WHILE EXISTS (SELECT * FROM #TempDelta)
+    BEGIN
+
+        SELECT TOP (1)
+               @id = id
+        FROM #TempDelta
+        ORDER BY id ASC;
+
+        -- the name of the object
+        SELECT TOP (1)
+               @object_name = [object_name]
+        FROM #TempDelta
+        WHERE id = @id
+        ORDER BY id ASC;
+
+        -- the type of the object
+        SELECT TOP (1)
+               @object_type = [object_type]
+        FROM #TempDelta
+        WHERE id = @id
+        ORDER BY id ASC;
+
+        -- the definition of the object
+        SELECT TOP (1)
+               @object_definition = [object_definition]
+        FROM #TempDelta
+        WHERE id = @id
+        ORDER BY id ASC;
+
+        -- the database of the object
+        SELECT TOP (1)
+               @database_name = [database_name]
+        FROM #TempDelta
+        WHERE id = @id
+        ORDER BY id ASC;
+
+        IF (@object_type = 'TABLE')
         BEGIN
+            PRINT '--Reverting changes made to table ' + @object_name;
 
-            SELECT TOP (1)
-                   @id = id
-            FROM #TempDelta
-            ORDER BY id ASC;
-
-            -- the name of the object
-            SELECT TOP (1)
-                   @object_name = [object_name]
-            FROM #TempDelta
-            WHERE id = @id
-            ORDER BY id ASC;
-
-            -- the type of the object
-            SELECT TOP (1)
-                   @object_type = [object_type]
-            FROM #TempDelta
-            WHERE id = @id
-            ORDER BY id ASC;
-
-            -- the definition of the object
-            SELECT TOP (1)
-                   @object_definition = [object_definition]
-            FROM #TempDelta
-            WHERE id = @id
-            ORDER BY id ASC;
-
-			-- the database of the object
-			SELECT TOP (1)
-					@database_name = [database_name]
-			FROM #TempDelta
-			WHERE id = @id
-			ORDER BY id ASC;
-
-            IF (@object_type = 'TABLE')
-            BEGIN
-                PRINT '--Reverting changes made to table ' + @object_name;
-
-				SET @stringToExecute = 'Use ' + QUOTENAME(@database_name) + ';
+            SET @stringToExecute = N'Use ' + QUOTENAME(@database_name) + N';
 				GO
 				
-				' + @object_definition
+				'                  + @object_definition + N'
+				GO';
 
-                --EXEC sp_executesql @stringToExecute;
-				PRINT @stringToExecute
-				PRINT ''
-            END;
-            ELSE IF (@object_type = 'VIEW')
-            BEGIN
-                PRINT '--Reverting changes made to view ' + @object_name;
+            --EXEC sp_executesql @stringToExecute;
+            PRINT @stringToExecute;
+            PRINT '';
+        END;
+        ELSE IF (@object_type = 'VIEW')
+        BEGIN
+            PRINT '--Reverting changes made to view ' + @object_name;
 
-                SET @stringToExecute
-                    = N'Use ' + QUOTENAME(@database_name) + ';
+            SET @stringToExecute
+                = N'Use ' + QUOTENAME(@database_name)
+                  + N';
+					GO
 
 					IF EXISTS(SELECT * FROM sys.views WHERE [name] = ''' + @object_name
-                      + N''')
+                  + N''')
 			BEGIN
-				DROP VIEW '            + @object_name + N'
+				DROP VIEW '        + @object_name + N'
 			END
 			GO
 			
-			' + @object_definition;
-                --EXEC sp_executesql @stringToExecute;
+			'                      + @object_definition + N'
+			GO';
+            --EXEC sp_executesql @stringToExecute;
 
-				--SET @stringToExecute = 'Use ' + QUOTENAME(@database_name) + ';
+            --SET @stringToExecute = 'Use ' + QUOTENAME(@database_name) + ';
 
-				--' + @object_definition
+            --' + @object_definition
 
-                --EXEC sp_executesql @stringToExecute;
-				PRINT @stringToExecute
-				PRINT ''
-            END;
-            ELSE IF (@object_type = 'PROCEDURE')
-            BEGIN
-                PRINT '--Reverting changes made to procedure ' + @object_name;
+            --EXEC sp_executesql @stringToExecute;
+            PRINT @stringToExecute;
+            PRINT '';
+        END;
+        ELSE IF (@object_type = 'PROCEDURE')
+        BEGIN
+            PRINT '--Reverting changes made to procedure ' + @object_name;
 
-                SET @stringToExecute
-                    = N'Use ' + QUOTENAME(@database_name) + ';
+            SET @stringToExecute
+                = N'Use ' + QUOTENAME(@database_name)
+                  + N';
+					GO
 
 					IF EXISTS(SELECT * FROM sys.procedures WHERE [name] = ''' + @object_name
-                      + N''')
+                  + N''')
 			BEGIN
-				DROP PROCEDURE '       + @object_name + N'
+				DROP PROCEDURE '   + @object_name + N'
 			END
 			GO
 
-			' + @object_definition;
-                --EXEC sp_executesql @stringToExecute;
-				
-				--SET @stringToExecute = 'Use ' + QUOTENAME(@database_name) + ';
+			'                      + @object_definition + N'
+			GO';
+            --EXEC sp_executesql @stringToExecute;
 
-				--' + @object_definition
+            --SET @stringToExecute = 'Use ' + QUOTENAME(@database_name) + ';
 
-                --EXEC sp_executesql @stringToExecute;
-				PRINT @stringToExecute
-				PRINT ''
-            END;
-            ELSE IF (@object_type = 'FUNCTION')
-            BEGIN
-                PRINT '--Reverting changes made to function ' + @object_name;
+            --' + @object_definition
 
-                SET @stringToExecute
-                    = N'Use ' + QUOTENAME(@database_name) + ';
+            --EXEC sp_executesql @stringToExecute;
+            PRINT @stringToExecute;
+            PRINT '';
+        END;
+        ELSE IF (@object_type = 'FUNCTION')
+        BEGIN
+            PRINT '--Reverting changes made to function ' + @object_name;
+
+            SET @stringToExecute
+                = N'Use ' + QUOTENAME(@database_name)
+                  + N';
+					GO
 
 					IF EXISTS(SELECT * FROM FROM sys.sql_modules m INNER JOIN sys.objects o ON m.[object_id] = o.[object_id] WHERE o.[type_desc] LIKE ''%function%'' AND [name] ='''
-                      + @object_name + N''')
+                  + @object_name + N''')
 			BEGIN
-				DROP FUNCTION '        + @object_name + N'
+				DROP FUNCTION '    + @object_name + N'
 			END
 			GO
 			
-			' + @object_definition;
-                --EXEC sp_executesql @stringToExecute;
+			'                      + @object_definition + N'
+			GO';
+            --EXEC sp_executesql @stringToExecute;
 
-				--SET @stringToExecute = 'Use ' + QUOTENAME(@database_name) + ';
+            --SET @stringToExecute = 'Use ' + QUOTENAME(@database_name) + ';
 
-				--' + @object_definition
+            --' + @object_definition
 
-                --EXEC sp_executesql @stringToExecute;
-				PRINT @stringToExecute
-				PRINT ''
-            END;
-            ELSE IF (@object_type = 'LINKED SERVER')
-            BEGIN
-                PRINT '--Reverting changes made to linked server ' + @object_name;
+            --EXEC sp_executesql @stringToExecute;
+            PRINT @stringToExecute;
+            PRINT '';
+        END;
+        ELSE IF (@object_type = 'LINKED SERVER')
+        BEGIN
+            PRINT '--Reverting changes made to linked server ' + @object_name;
 
-                SET @stringToExecute
-                    = N'IF EXISTS(SELECT * FROM sys.servers WHERE name = ''' + @object_name
-                      + N''')
+            SET @stringToExecute
+                = N'IF EXISTS(SELECT * FROM sys.servers WHERE name = ''' + @object_name
+                  + N''')
 			BEGIN
 				EXEC sp_dropserver ''' + @object_name + N'''
 			END
 			GO
 			
-			' + @object_definition;
-                --EXEC sp_executesql @stringToExecute;
-                --EXEC sp_executesql @object_definition;
-				PRINT @stringToExecute
-				PRINT ''
+			'                      + @object_definition + N'
+			GO';
+            --EXEC sp_executesql @stringToExecute;
+            --EXEC sp_executesql @object_definition;
+            PRINT @stringToExecute;
+            PRINT '';
 
-            END;
-            ELSE IF (@object_type = 'LOGIN')
-            BEGIN
-                PRINT '--Reverting changes made to login ' + @object_name;
+        END;
+        ELSE IF (@object_type = 'LOGIN')
+        BEGIN
+            PRINT '--Reverting changes made to login ' + @object_name;
 
-                SET @stringToExecute
-                    = N'IF EXISTS(SELECT loginname FROM sys.syslogins WHERE [name] = ''' + @object_name
-                      + N''')
+            SET @stringToExecute
+                = N'IF EXISTS(SELECT loginname FROM sys.syslogins WHERE [name] = ''' + @object_name
+                  + N''')
 			BEGIN
-			DROP LOGIN '               + @object_name + N'
+			DROP LOGIN '           + @object_name + N'
 			END
 			GO
 			
-			' + @object_definition;
-                --EXEC sp_executesql @stringToExecute;
-                --EXEC sp_executesql @object_definition;
-				PRINT @stringToExecute
-				PRINT ''
-            END;
-
-            DELETE #TempDelta
-            WHERE id = @id;
+			'                      + @object_definition + N'
+			GO';
+            --EXEC sp_executesql @stringToExecute;
+            --EXEC sp_executesql @object_definition;
+            PRINT @stringToExecute;
+            PRINT '';
         END;
 
-        -- Drop all newly created objects 
+        DELETE #TempDelta
+        WHERE id = @id;
+    END;
 
-		-- tables
-		CREATE TABLE #TempTab(
-			[id] [INT] IDENTITY(1,1) NOT NULL,
-			[database_name] [NVARCHAR](1000) NOT NULL,
-			[schema_name] [NVARCHAR](1000) NOT NULL,
-			[obj_name] [NVARCHAR](1000) NOT NULL
-		)
+    -- Drop all newly created objects 
 
-		select @sql = 
-			(select ' UNION ALL
-				SELECT ' +  + quotename(name,'''') + ' as database_name,
+    -- tables
+    CREATE TABLE #TempTab
+    (
+        [id] [INT] IDENTITY(1, 1) NOT NULL,
+        [database_name] [NVARCHAR](1000) NOT NULL,
+        [schema_name] [NVARCHAR](1000) NOT NULL,
+        [obj_name] [NVARCHAR](1000) NOT NULL
+    );
+
+    SELECT @sql
+        =
+    (
+        SELECT ' UNION ALL
+				SELECT ' + +QUOTENAME(name, '''')
+               + ' as database_name,
 					   s.name COLLATE DATABASE_DEFAULT
 							AS schema_name,
 					   t.name COLLATE DATABASE_DEFAULT as table_name 
-					   FROM '+ quotename(name) + '.sys.tables t
-					   JOIN '+ quotename(name) + '.sys.schemas s
+					   FROM ' + QUOTENAME(name) + '.sys.tables t
+					   JOIN ' + QUOTENAME(name) + '.sys.schemas s
 							on s.schema_id = t.schema_id'
-			from sys.databases 
-			where state=0 AND name <> 'tempdb' AND name <> 'msdb' AND name <> 'DWConfiguration' AND name <> 'DWDiagnostics' AND name <> 'DWQueue' AND name <> 'master'
-			order by [name] for xml path(''), type).value('.', 'nvarchar(max)');
+        FROM sys.databases
+        WHERE state = 0
+              AND name <> 'tempdb'
+              AND name <> 'msdb'
+              AND name <> 'DWConfiguration'
+              AND name <> 'DWDiagnostics'
+              AND name <> 'DWQueue'
+              AND name <> 'master'
+              AND name <> 'model'
+        ORDER BY [name]
+        FOR XML PATH(''), TYPE
+    ).value('.', 'nvarchar(max)');
 
-		set @sql = stuff(@sql, 1, 12, '') + ' order by database_name, 
+    SET @sql
+        = STUFF(@sql, 1, 12, '')
+          + N' order by database_name, 
 													   schema_name,
 													   table_name';
 
-		INSERT INTO #TempTab
-		execute (@sql);
+    INSERT INTO #TempTab
+    EXECUTE (@sql);
 
-		DELETE #TempTab
-		WHERE EXISTS (SELECT * FROM [helper].[HistTables] h WHERE h.table_name = [obj_name] AND h.[schema_name] = [schema_name] AND h.[database_name] = [database_name] AND deployment_type = 'START' AND h.deployment_id = @deploymentId)
+    DELETE #TempTab
+    WHERE EXISTS
+    (
+        SELECT *
+        FROM [helper].[HistTables] h
+        WHERE h.table_name = [obj_name]
+              AND h.[schema_name] = [schema_name]
+              AND h.[database_name] = [database_name]
+              AND deployment_type = 'START'
+              AND h.deployment_id = @deploymentId
+    );
 
-		WHILE EXISTS (SELECT * FROM #TempTab)
-        BEGIN
-			SELECT TOP(1) @id = [id] FROM #TempTab ORDER BY [id] ASC
+    WHILE EXISTS (SELECT * FROM #TempTab)
+    BEGIN
+        SELECT TOP (1)
+               @id = [id]
+        FROM #TempTab
+        ORDER BY [id] ASC;
 
-            -- the name of the object
-            SELECT TOP (1)
-                   @object_name = [obj_name]
-            FROM #TempTab
-			WHERE [id] = @id
+        -- the name of the object
+        SELECT TOP (1)
+               @object_name = [obj_name]
+        FROM #TempTab
+        WHERE [id] = @id;
 
-			SELECT TOP(1) @schema_name = [schema_name] FROM #TempTab WHERE [id] = @id
+        SELECT TOP (1)
+               @schema_name = [schema_name]
+        FROM #TempTab
+        WHERE [id] = @id;
 
-			SELECT TOP(1) @database_name = [database_name] FROM #TempTab WHERE [id] = @id
+        SELECT TOP (1)
+               @database_name = [database_name]
+        FROM #TempTab
+        WHERE [id] = @id;
 
-            PRINT '--Dropping table ' + @object_name;
+        PRINT '--Dropping table ' + @object_name;
 
-            SET @stringToExecute = N'DROP TABLE ' + QUOTENAME(@database_name) + '.' + QUOTENAME(@schema_name) + '.' + QUOTENAME(@object_name)
+        SET @stringToExecute
+            = N'DROP TABLE ' + QUOTENAME(@database_name) + N'.' + QUOTENAME(@schema_name) + N'.'
+              + QUOTENAME(@object_name) + N'
+			GO';
 
-            --EXEC sp_executesql @stringToExecute;
-			PRINT @stringToExecute
-			PRINT ''
+        --EXEC sp_executesql @stringToExecute;
+        PRINT @stringToExecute;
+        PRINT '';
 
-            DELETE #TempTab
-            WHERE [id] = @id
-        END;
+        DELETE #TempTab
+        WHERE [id] = @id;
+    END;
 
-        -- functions
+    -- functions
 
-		SELECT @sql
+    SELECT @sql
         =
     (
         SELECT ' UNION ALL
@@ -1106,6 +1206,7 @@ WHERE [database_id] NOT IN ( 1, 2, 3, 4 );
               AND name <> 'DWDiagnostics'
               AND name <> 'DWQueue'
               AND name <> 'master'
+              AND name <> 'model'
         ORDER BY [name]
         FOR XML PATH(''), TYPE
     ).value('.', 'nvarchar(max)');
@@ -1116,40 +1217,61 @@ WHERE [database_id] NOT IN ( 1, 2, 3, 4 );
                                                schema_name,
                                                function_name';
 
-	INSERT INTO #TempTab
-	EXECUTE(@sql)
+    INSERT INTO #TempTab
+    EXECUTE (@sql);
 
-	DELETE #TempTab
-	WHERE EXISTS (SELECT * FROM [helper].[HistFunctions] h WHERE h.function_name = [obj_name] AND h.[schema_name] = [schema_name] AND h.[database_name] = [database_name] AND deployment_type = 'START' AND h.deployment_id = @deploymentId)
+    DELETE #TempTab
+    WHERE EXISTS
+    (
+        SELECT *
+        FROM [helper].[HistFunctions] h
+        WHERE h.function_name = [obj_name]
+              AND h.[schema_name] = [schema_name]
+              AND h.[database_name] = [database_name]
+              AND deployment_type = 'START'
+              AND h.deployment_id = @deploymentId
+    );
 
-	WHILE EXISTS (SELECT * FROM #TempTab)
+    WHILE EXISTS (SELECT * FROM #TempTab)
     BEGIN
-		SELECT TOP(1) @id = [id] FROM #TempTab ORDER BY [id] ASC
+        SELECT TOP (1)
+               @id = [id]
+        FROM #TempTab
+        ORDER BY [id] ASC;
 
         -- the name of the object
         SELECT TOP (1)
-                @object_name = [obj_name]
+               @object_name = [obj_name]
         FROM #TempTab
-		WHERE [id] = @id
+        WHERE [id] = @id;
 
-		SELECT TOP(1) @schema_name = [schema_name] FROM #TempTab WHERE [id] = @id
+        SELECT TOP (1)
+               @schema_name = [schema_name]
+        FROM #TempTab
+        WHERE [id] = @id;
 
-		SELECT TOP(1) @database_name = [database_name] FROM #TempTab WHERE [id] = @id
+        SELECT TOP (1)
+               @database_name = [database_name]
+        FROM #TempTab
+        WHERE [id] = @id;
 
         PRINT '--Dropping function ' + @object_name;
 
-        SET @stringToExecute = N'DROP FUNCTION ' + QUOTENAME(@database_name) + '.' + QUOTENAME(@schema_name) + '.' + QUOTENAME(@object_name)
+        SET @stringToExecute
+            = N'DROP FUNCTION ' + QUOTENAME(@database_name) + N'.' + QUOTENAME(@schema_name) + N'.'
+              + QUOTENAME(@object_name) + N'
+		GO';
 
         --EXEC sp_executesql @stringToExecute;
-		PRINT @stringToExecute
-		PRINT ''
+        PRINT @stringToExecute;
+        PRINT '';
 
         DELETE #TempTab
-        WHERE [id] = @id
+        WHERE [id] = @id;
     END;
 
-        -- procedures
-		SELECT @sql
+    -- procedures
+    SELECT @sql
         =
     (
         SELECT ' UNION ALL
@@ -1169,6 +1291,7 @@ WHERE [database_id] NOT IN ( 1, 2, 3, 4 );
               AND name <> 'DWDiagnostics'
               AND name <> 'DWQueue'
               AND name <> 'master'
+              AND name <> 'model'
         ORDER BY [name]
         FOR XML PATH(''), TYPE
     ).value('.', 'nvarchar(max)');
@@ -1179,40 +1302,61 @@ WHERE [database_id] NOT IN ( 1, 2, 3, 4 );
                                                schema_name,
                                                procedure_name';
 
-	INSERT INTO #TempTab
-	EXECUTE(@sql)
+    INSERT INTO #TempTab
+    EXECUTE (@sql);
 
-	DELETE #TempTab 
-	WHERE EXISTS (SELECT * FROM [helper].[HistProcedures] h WHERE h.procedure_name = [obj_name] AND h.[schema_name] = [schema_name] AND h.[database_name] = [database_name] AND deployment_type = 'START' AND h.deployment_id = @deploymentId)
+    DELETE #TempTab
+    WHERE EXISTS
+    (
+        SELECT *
+        FROM [helper].[HistProcedures] h
+        WHERE h.procedure_name = [obj_name]
+              AND h.[schema_name] = [schema_name]
+              AND h.[database_name] = [database_name]
+              AND deployment_type = 'START'
+              AND h.deployment_id = @deploymentId
+    );
 
-	WHILE EXISTS (SELECT * FROM #TempTab)
+    WHILE EXISTS (SELECT * FROM #TempTab)
     BEGIN
-		SELECT TOP(1) @id = [id] FROM #TempTab ORDER BY [id] ASC
+        SELECT TOP (1)
+               @id = [id]
+        FROM #TempTab
+        ORDER BY [id] ASC;
 
         -- the name of the object
         SELECT TOP (1)
-                @object_name = [obj_name]
+               @object_name = [obj_name]
         FROM #TempTab
-		WHERE [id] = @id
+        WHERE [id] = @id;
 
-		SELECT TOP(1) @schema_name = [schema_name] FROM #TempTab WHERE [id] = @id
+        SELECT TOP (1)
+               @schema_name = [schema_name]
+        FROM #TempTab
+        WHERE [id] = @id;
 
-		SELECT TOP(1) @database_name = [database_name] FROM #TempTab WHERE [id] = @id
+        SELECT TOP (1)
+               @database_name = [database_name]
+        FROM #TempTab
+        WHERE [id] = @id;
 
         PRINT '--Dropping procedure ' + @object_name;
 
-        SET @stringToExecute = N'DROP PROCEDURE ' + QUOTENAME(@database_name) + '.' + QUOTENAME(@schema_name) + '.' + QUOTENAME(@object_name)
+        SET @stringToExecute
+            = N'DROP PROCEDURE ' + QUOTENAME(@database_name) + N'.' + QUOTENAME(@schema_name) + N'.'
+              + QUOTENAME(@object_name) + N'
+		GO';
 
         --EXEC sp_executesql @stringToExecute;
-		PRINT @stringToExecute
-		PRINT ''
+        PRINT @stringToExecute;
+        PRINT '';
 
         DELETE #TempTab
-        WHERE [id] = @id
+        WHERE [id] = @id;
     END;
 
-        -- views
-		SELECT @sql
+    -- views
+    SELECT @sql
         =
     (
         SELECT ' UNION ALL
@@ -1232,6 +1376,7 @@ WHERE [database_id] NOT IN ( 1, 2, 3, 4 );
               AND name <> 'DWDiagnostics'
               AND name <> 'DWQueue'
               AND name <> 'master'
+              AND name <> 'model'
         ORDER BY [name]
         FOR XML PATH(''), TYPE
     ).value('.', 'nvarchar(max)');
@@ -1242,196 +1387,222 @@ WHERE [database_id] NOT IN ( 1, 2, 3, 4 );
                                                schema_name,
                                                view_name';
 
-	INSERT INTO #TempTab
-	EXECUTE(@sql)
+    INSERT INTO #TempTab
+    EXECUTE (@sql);
 
-	DELETE #TempTab 
-	WHERE EXISTS (SELECT * FROM [helper].[HistViews] h WHERE h.view_name = [obj_name] AND h.[schema_name] = [schema_name] AND h.[database_name] = [database_name] AND deployment_type = 'START' AND deployment_id = @deploymentId)
+    DELETE #TempTab
+    WHERE EXISTS
+    (
+        SELECT *
+        FROM [helper].[HistViews] h
+        WHERE h.view_name = [obj_name]
+              AND h.[schema_name] = [schema_name]
+              AND h.[database_name] = [database_name]
+              AND deployment_type = 'START'
+              AND deployment_id = @deploymentId
+    );
 
-	WHILE EXISTS (SELECT * FROM #TempTab)
+    WHILE EXISTS (SELECT * FROM #TempTab)
     BEGIN
-		SELECT TOP(1) @id = [id] FROM #TempTab ORDER BY [id] ASC
+        SELECT TOP (1)
+               @id = [id]
+        FROM #TempTab
+        ORDER BY [id] ASC;
 
         -- the name of the object
         SELECT TOP (1)
-                @object_name = [obj_name]
+               @object_name = [obj_name]
         FROM #TempTab
-		WHERE [id] = @id
+        WHERE [id] = @id;
 
-		SELECT TOP(1) @schema_name = [schema_name] FROM #TempTab WHERE [id] = @id
+        SELECT TOP (1)
+               @schema_name = [schema_name]
+        FROM #TempTab
+        WHERE [id] = @id;
 
-		SELECT TOP(1) @database_name = [database_name] FROM #TempTab WHERE [id] = @id
+        SELECT TOP (1)
+               @database_name = [database_name]
+        FROM #TempTab
+        WHERE [id] = @id;
 
         PRINT '--Dropping view ' + @object_name;
 
-        SET @stringToExecute = N'DROP VIEW ' + QUOTENAME(@database_name) + '.' + QUOTENAME(@schema_name) + '.' + QUOTENAME(@object_name)
+        SET @stringToExecute
+            = N'DROP VIEW ' + QUOTENAME(@database_name) + N'.' + QUOTENAME(@schema_name) + N'.'
+              + QUOTENAME(@object_name) + N'
+		GO';
 
         --EXEC sp_executesql @stringToExecute;
-		PRINT @stringToExecute
-		PRINT ''
+        PRINT @stringToExecute;
+        PRINT '';
 
         DELETE #TempTab
-        WHERE [id] = @id
+        WHERE [id] = @id;
     END;
-        
-        -- linked servers
-        CREATE TABLE #LSTemp2
-        (
-            [srv_name] [NVARCHAR](2000) NULL,
-            [srv_providername] [NVARCHAR](2000) NULL,
-            [srv_product] [NVARCHAR](2000) NULL,
-            [srv_datasource] [NVARCHAR](MAX) NULL,
-            [srv_providerstring] [NVARCHAR](MAX) NULL,
-            [srv_location] [NVARCHAR](2000) NULL,
-            [srv_cat] [NVARCHAR](2000) NULL
-        );
 
-        INSERT INTO #LSTemp2
-        (
-            [srv_name],
-            [srv_providername],
-            [srv_product],
-            [srv_datasource],
-            [srv_providerstring],
-            [srv_location],
-            [srv_cat]
-        )
-        EXEC sys.sp_linkedservers;
+    -- linked servers
+    CREATE TABLE #LSTemp2
+    (
+        [srv_name] [NVARCHAR](2000) NULL,
+        [srv_providername] [NVARCHAR](2000) NULL,
+        [srv_product] [NVARCHAR](2000) NULL,
+        [srv_datasource] [NVARCHAR](MAX) NULL,
+        [srv_providerstring] [NVARCHAR](MAX) NULL,
+        [srv_location] [NVARCHAR](2000) NULL,
+        [srv_cat] [NVARCHAR](2000) NULL
+    );
 
-        SELECT [srv_name] AS [name]
-        INTO #temp_ls
-        FROM #LSTemp2
-        WHERE [srv_name] NOT IN
+    INSERT INTO #LSTemp2
+    (
+        [srv_name],
+        [srv_providername],
+        [srv_product],
+        [srv_datasource],
+        [srv_providerstring],
+        [srv_location],
+        [srv_cat]
+    )
+    EXEC sys.sp_linkedservers;
+
+    SELECT [srv_name] AS [name]
+    INTO #temp_ls
+    FROM #LSTemp2
+    WHERE [srv_name] NOT IN
+          (
+              SELECT [server_name]
+              FROM [helper].[HistLinkedServers]
+              WHERE deployment_type = 'START'
+                    AND deployment_id = @deploymentId
+          );
+
+    WHILE EXISTS (SELECT * FROM #temp_ls)
+    BEGIN
+        -- the name of the object
+        SELECT TOP (1)
+               @object_name = [name]
+        FROM #temp_ls
+        ORDER BY [name] ASC;
+
+        PRINT '--Dropping linked server ' + @object_name;
+
+        SET @stringToExecute = N'EXEC sp_dropserver ''' + @object_name + N'''
+			GO';
+
+        --EXEC sp_executesql @stringToExecute;
+        PRINT @stringToExecute;
+        PRINT '';
+
+        DELETE #temp_ls
+        WHERE [name] = @object_name;
+    END;
+
+    -- agent jobs
+    SELECT [name]
+    INTO #temp_jobs
+    FROM msdb.dbo.sysjobs
+    WHERE [name] NOT IN
+          (
+              SELECT [job_name]
+              FROM [helper].[HistAgentJobs]
+              WHERE deployment_type = 'START'
+                    AND deployment_id = @deploymentId
+          );
+
+    WHILE EXISTS (SELECT * FROM #temp_jobs)
+    BEGIN
+        -- the name of the object
+        SELECT TOP (1)
+               @object_name = [name]
+        FROM #temp_jobs
+        ORDER BY [name] ASC;
+
+        PRINT '--Dropping agent job ' + @object_name;
+
+        SET @stringToExecute = N'EXEC sp_delete_job ''' + @object_name + N'''
+			GO';
+
+        --EXEC sp_executesql @stringToExecute;
+        PRINT @stringToExecute;
+        PRINT '';
+
+        DELETE #temp_jobs
+        WHERE [name] = @object_name;
+    END;
+
+    --logins
+    SELECT l.[name]
+    INTO #temp_logins
+    FROM sys.syslogins l
+        LEFT JOIN sys.server_principals p
+            ON (l.name = p.name)
+    WHERE p.type IN ( 'S', 'G', 'U' )
+          AND l.name <> 'sa'
+          AND l.[name] NOT IN
               (
-                  SELECT [server_name]
-                  FROM [helper].[HistLinkedServers]
+                  SELECT [login_name]
+                  FROM [helper].[HistLogins]
                   WHERE deployment_type = 'START'
-					AND deployment_id = @deploymentId
+                        AND deployment_id = @deploymentId
               );
 
-        WHILE EXISTS (SELECT * FROM #temp_ls)
-        BEGIN
-            -- the name of the object
-            SELECT TOP (1)
-                   @object_name = [name]
-            FROM #temp_ls
-            ORDER BY [name] ASC;
+    WHILE EXISTS (SELECT * FROM #temp_logins)
+    BEGIN
+        -- the name of the object
+        SELECT TOP (1)
+               @object_name = [name]
+        FROM #temp_logins
+        ORDER BY [name] ASC;
 
-            PRINT '--Dropping linked server ' + @object_name;
+        PRINT '--Dropping login ' + @object_name;
 
-            SET @stringToExecute = N'EXEC sp_dropserver ''' + @object_name + N'''';
+        SET @stringToExecute = N'DROP LOGIN ' + @object_name + N'
+			GO';
 
-            --EXEC sp_executesql @stringToExecute;
-			PRINT @stringToExecute
-			PRINT ''
+        --EXEC sp_executesql @stringToExecute;
+        PRINT @stringToExecute;
+        PRINT '';
 
-            DELETE #temp_ls
-            WHERE [name] = @object_name;
-        END;
+        DELETE #temp_logins
+        WHERE [name] = @object_name;
+    END;
 
-        -- agent jobs
-        SELECT [name]
-        INTO #temp_jobs
-        FROM msdb.dbo.sysjobs
-        WHERE [name] NOT IN
-              (
-                  SELECT [job_name]
-                  FROM [helper].[HistAgentJobs]
-                  WHERE deployment_type = 'START'
-					AND deployment_id = @deploymentId
-              );
+    -- databases
+    SELECT [name]
+    INTO #temp_dbs
+    FROM sys.databases
+    WHERE [name] NOT IN
+          (
+              SELECT database_name
+              FROM [helper].[HistDatabases]
+              WHERE deployment_type = 'START'
+                    AND deployment_id = @deploymentId
+          )
+          AND database_id NOT IN ( 1, 2, 3, 4 )
+          AND [name] NOT IN ( 'DWDiagnostics', 'DWQueue', 'DWConfiguration' );
 
-        WHILE EXISTS (SELECT * FROM #temp_jobs)
-        BEGIN
-            -- the name of the object
-            SELECT TOP (1)
-                   @object_name = [name]
-            FROM #temp_jobs
-            ORDER BY [name] ASC;
+    WHILE EXISTS (SELECT * FROM #temp_dbs)
+    BEGIN
+        -- the name of the object
+        SELECT TOP (1)
+               @object_name = [name]
+        FROM #temp_dbs
+        ORDER BY [name] ASC;
 
-            PRINT '--Dropping agent job ' + @object_name;
+        PRINT '--Dropping database ' + @object_name;
 
-            SET @stringToExecute = N'EXEC sp_delete_job ''' + @object_name + N'''';
+        SET @stringToExecute = N'DROP DATABASE ' + @object_name + N'
+			GO';
 
-            --EXEC sp_executesql @stringToExecute;
-			PRINT @stringToExecute
-			PRINT ''
+        --EXEC sp_executesql @stringToExecute;
+        PRINT @stringToExecute;
+        PRINT '';
 
-            DELETE #temp_jobs
-            WHERE [name] = @object_name;
-        END;
+        DELETE #temp_dbs
+        WHERE [name] = @object_name;
+    END;
 
-        --logins
-        SELECT l.[name]
-        INTO #temp_logins
-        FROM sys.syslogins l
-            LEFT JOIN sys.server_principals p
-                ON (l.name = p.name)
-        WHERE p.type IN ( 'S', 'G', 'U' )
-              AND l.name <> 'sa'
-              AND l.[name] NOT IN
-                  (
-                      SELECT [login_name]
-                      FROM [helper].[HistLogins]
-                      WHERE deployment_type = 'START'
-						AND deployment_id = @deploymentId
-                  );
+    SET NOCOUNT OFF;
 
-        WHILE EXISTS (SELECT * FROM #temp_logins)
-        BEGIN
-            -- the name of the object
-            SELECT TOP (1)
-                   @object_name = [name]
-            FROM #temp_logins
-            ORDER BY [name] ASC;
-
-            PRINT '--Dropping login ' + @object_name;
-
-            SET @stringToExecute = N'DROP LOGIN ' + @object_name;
-
-            --EXEC sp_executesql @stringToExecute;
-			PRINT @stringToExecute
-			PRINT ''
-
-            DELETE #temp_logins
-            WHERE [name] = @object_name;
-        END;
-
-        -- databases
-        SELECT [name]
-        INTO #temp_dbs
-        FROM sys.databases
-        WHERE [name] NOT IN
-              (
-                  SELECT database_name
-                  FROM [helper].[HistDatabases]
-                  WHERE deployment_type = 'START'
-					AND deployment_id = @deploymentId
-              )
-              AND database_id NOT IN (1, 2, 3, 4);
-
-        WHILE EXISTS (SELECT * FROM #temp_dbs)
-        BEGIN
-            -- the name of the object
-            SELECT TOP (1)
-                   @object_name = [name]
-            FROM #temp_dbs
-            ORDER BY [name] ASC;
-
-            PRINT '--Dropping database ' + @object_name;
-
-            SET @stringToExecute = N'DROP DATABASE ' + @object_name;
-
-            --EXEC sp_executesql @stringToExecute;
-			PRINT @stringToExecute
-			PRINT ''
-
-            DELETE #temp_dbs
-            WHERE [name] = @object_name;
-        END;
-
-	SET NOCOUNT OFF;
-
-	SELECT 'Prozedur angehalten' AS [Status]
+    SELECT 'Prozedur angehalten' AS [Status];
 END;
 GO
