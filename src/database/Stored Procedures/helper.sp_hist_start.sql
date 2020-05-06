@@ -115,6 +115,15 @@ BEGIN
     DECLARE @stringToExecute NVARCHAR(MAX);
     DECLARE @name NVARCHAR(2000);
 
+	DECLARE @bulkadmin int
+	DECLARE @dbcreator int
+	DECLARE @diskadmin int
+	DECLARE @processadmin int
+	DECLARE @setupadmin int
+	DECLARE @serveradmin int
+	DECLARE @securityadmin int
+	DECLARE @sysadmin int
+
     DECLARE login_cursor CURSOR FOR(
     SELECT DISTINCT
            l.sid,
@@ -123,7 +132,15 @@ BEGIN
            p.is_disabled,
            p.default_database_name,
            l.hasaccess,
-           l.denylogin
+           l.denylogin,
+		   l.bulkadmin,
+		   l.dbcreator,
+		   l.diskadmin,
+		   l.processadmin,
+		   l.setupadmin,
+		   l.serveradmin,
+		   l.securityadmin,
+		   l.sysadmin
     FROM sys.syslogins l
         LEFT JOIN sys.server_principals p
             ON (l.name = p.name)
@@ -139,7 +156,15 @@ BEGIN
          @is_disabled,
          @defaultdb,
          @hasaccess,
-         @denylogin;
+         @denylogin,
+		 @bulkadmin,
+		 @dbcreator,
+		 @diskadmin,
+		 @processadmin,
+		 @setupadmin,
+		 @serveradmin,
+		 @securityadmin,
+		 @sysadmin
     IF (@@fetch_status = -1)
     BEGIN
         PRINT 'Exception occurred while retrieving login cursor.';
@@ -208,6 +233,70 @@ BEGIN
                 SET @tmpstr = @tmpstr + '; ALTER LOGIN ''' + @name + ''' DISABLE';
             END;
 
+			IF(@bulkadmin = 1)
+			BEGIN
+				SET @tmpstr = @tmpstr + '
+				
+				ALTER SERVER ROLE bulkadmin ADD MEMBER ' + @name + '
+				GO'
+			END;
+
+			IF(@dbcreator = 1)
+			BEGIN
+				SET @tmpstr = @tmpstr + '
+				
+				ALTER SERVER ROLE dbcreator ADD MEMBER ' + @name + '
+				GO'
+			END;
+
+			IF(@diskadmin = 1)
+			BEGIN
+				SET @tmpstr = @tmpstr + '
+				
+				ALTER SERVER ROLE diskadmin ADD MEMBER ' + @name + '
+				GO'
+			END;
+
+			IF(@processadmin = 1)
+			BEGIN
+				SET @tmpstr = @tmpstr + '
+				
+				ALTER SERVER ROLE processadmin ADD MEMBER ' + @name + '
+				GO'
+			END;
+
+			IF(@setupadmin = 1)
+			BEGIN
+				SET @tmpstr = @tmpstr + '
+				
+				ALTER SERVER ROLE setupadmin ADD MEMBER ' + @name + '
+				GO'
+			END;
+
+			IF(@serveradmin = 1)
+			BEGIN
+				SET @tmpstr = @tmpstr + '
+				
+				ALTER SERVER ROLE serveradmin ADD MEMBER ' + @name + '
+				GO'
+			END;
+
+			IF(@securityadmin = 1)
+			BEGIN
+				SET @tmpstr = @tmpstr + '
+				
+				ALTER SERVER ROLE securityadmin ADD MEMBER ' + @name + '
+				GO'
+			END;
+
+			IF(@sysadmin = 1)
+			BEGIN
+				SET @tmpstr = @tmpstr + '
+				
+				ALTER SERVER ROLE sysadmin ADD MEMBER ' + @name + '
+				GO'
+			END;
+
             INSERT INTO [helper].[HistLogins]
             (
                 [timestamp],
@@ -224,12 +313,20 @@ BEGIN
 
             FETCH NEXT FROM login_cursor
             INTO @SID_varbinary,
-                 @name,
-                 @type,
-                 @is_disabled,
-                 @defaultdb,
-                 @hasaccess,
-                 @denylogin;
+				 @name,
+				 @type,
+				 @is_disabled,
+				 @defaultdb,
+				 @hasaccess,
+				 @denylogin,
+				 @bulkadmin,
+				 @dbcreator,
+				 @diskadmin,
+				 @processadmin,
+				 @setupadmin,
+				 @serveradmin,
+				 @securityadmin,
+				 @sysadmin;
         END;
     END;
     CLOSE login_cursor;
@@ -250,24 +347,268 @@ BEGIN
         (
             [timestamp] [DATETIME] NOT NULL,
             [job_name] [NVARCHAR](1000) NOT NULL,
+			[job_definition] [NVARCHAR](max) NOT NULL,
             [deployment_type] [NVARCHAR](1000) NOT NULL,
-            [deployment_id] UNIQUEIDENTIFIER NOT NULL
+            [deployment_id] UNIQUEIDENTIFIER NULL
         );
     END;
+	
+	DECLARE @sqlstate_Agent AS NVARCHAR(MAX)
+        = ('USE msdb
 
-    -- Store the name of all agent jobs currently present on the system in the table
-    INSERT INTO [helper].[HistAgentJobs]
-    (
-        [timestamp],
+Declare @PRIMCount as int
+Declare @SECONDCount as int
+
+DECLARE @job_id UNIQUEIDENTIFIER
+DECLARE @enabled BIT
+DECLARE @notify_level_eventlog INT
+DECLARE @notify_level_email INT
+DECLARE @notify_level_netsend INT
+DECLARE @notify_level_page INT
+DECLARE @delete_level INT
+DECLARE @description NVARCHAR(1024)
+DECLARE @category_name sysname
+DECLARE @owner_login_name sysname
+
+DECLARE @step_id INT
+DECLARE @step_name sysname
+DECLARE @command NVARCHAR(MAX)
+DECLARE @additional_parameters NVARCHAR(MAX)
+DECLARE @cmdexec_success_code INT
+DECLARE @on_success_action TINYINT
+DECLARE @on_success_step_id INT
+DECLARE @on_fail_action TINYINT
+DECLARE @on_fail_step_id INT
+DECLARE @retry_attempts INT
+DECLARE @retry_interval INT
+DECLARE @os_run_priority INT
+DECLARE @subsystem NVARCHAR(80)
+DECLARE @server sysname
+DECLARE @database_name sysname
+DECLARE @database_user_name sysname
+DECLARE @flags INT
+DECLARE @proxy_name sysname
+DECLARE @output_file_name NVARCHAR(400)
+DECLARE @countsql int
+DECLARE @CHECHAVG INT
+
+DECLARE @date_created datetime
+DECLARE @date_modified datetime
+
+Declare @SQLState nvarchar(max)
+DECLARE @JobName sysname
+
+DECLARE @SQL NVARCHAR(MAX)
+
+SET @CHECHAVG =
+(
+SELECT COUNT(*) as PRIMARY_COMPUTE
+            FROM sys.dm_hadr_availability_replica_states hars 
+            INNER JOIN sys.availability_groups ag ON ag.group_id = hars.group_id 
+            INNER JOIN sys.availability_replicas ar ON ar.replica_id = hars.replica_id
+           
+)  
+
+SET @PRIMCount =
+(
+SELECT COUNT(*) as PRIMARY_COMPUTE
+            FROM sys.dm_hadr_availability_replica_states hars 
+            INNER JOIN sys.availability_groups ag ON ag.group_id = hars.group_id 
+            INNER JOIN sys.availability_replicas ar ON ar.replica_id = hars.replica_id
+            WHERE role_desc = ''PRIMARY''
+)         
+
+if @PRIMCount = 1 or @CHECHAVG=0
+BEGIN
+
+SELECT [name],date_created,date_modified 
+INTO #JOBS
+FROM msdb.dbo.sysjobs
+WHERE name <> ''syspolicy_purge_history''
+
+use admindb
+
+	SET @countsql=
+	(
+	select count(*) from #JOBS
+	)
+
+WHILE  @countsql >=1
+	BEGIN
+
+
+		SET @JobName = 
+		(
+		SELECT TOP 1 [name] from #JOBS
+		)
+
+		--select @JobName
+
+SELECT
+    @job_id = job_id,
+    @enabled = [enabled],
+    @notify_level_eventlog = notify_level_eventlog,
+    @notify_level_email = notify_level_email,
+    @notify_level_netsend = notify_level_netsend,
+    @notify_level_page = notify_level_page,
+    @delete_level = delete_level,
+    @description = [description],
+    @category_name = c.name,
+    @owner_login_name = o.name
+FROM msdb.dbo.sysjobs j
+INNER JOIN msdb.dbo.syscategories c ON c.category_id = j.category_id
+INNER JOIN msdb.dbo.syslogins o ON j.owner_sid = o.sid
+WHERE j.name = @JobName
+
+SET @SQL = N''USE msdb
+DECLARE @jobId BINARY(16)
+DECLARE @ReturnCode INT
+
+EXEC @ReturnCode =  msdb.dbo.sp_add_job
+    @job_name=N'''''' + @JobName + '''''', 
+    @enabled='' + CAST(@enabled AS NVARCHAR(1)) + '', 
+    @notify_level_eventlog='' + CAST(@notify_level_eventlog AS NVARCHAR(5)) + '', 
+    @notify_level_email='' + CAST(@notify_level_email AS NVARCHAR(5)) + '', 
+    @notify_level_netsend='' + CAST(@notify_level_netsend AS NVARCHAR(5)) + '', 
+    @notify_level_page='' + CAST(@notify_level_page AS NVARCHAR(5)) + '', 
+    @delete_level='' + CAST(@delete_level AS NVARCHAR(5)) + '', 
+    @description=N'''''' + @description + '''''', 
+    @category_name=N'''''' + @category_name + '''''', 
+    @owner_login_name=N'''''' + @owner_login_name + '''''',
+    @job_id = @jobId OUTPUT
+''
+
+DECLARE JOB_STEPS CURSOR FOR
+SELECT
+    step_id,
+    step_name,
+    command,
+    additional_parameters,
+    cmdexec_success_code,
+    on_success_action,
+    on_success_step_id,
+    on_fail_action,
+    on_fail_step_id,
+    retry_attempts,
+    retry_interval,
+    os_run_priority,
+    subsystem,
+    [server],
+    database_name,
+    flags,
+    p.name,
+    output_file_name
+FROM msdb.dbo.sysjobsteps s
+LEFT JOIN msdb.dbo.sysproxies p ON p.proxy_id = s.proxy_id
+WHERE job_id=@job_id
+ORDER BY step_id
+
+OPEN JOB_STEPS
+FETCH NEXT FROM JOB_STEPS
+    INTO @step_id,
+         @step_name,
+         @command,
+         @additional_parameters,
+         @cmdexec_success_code,
+         @on_success_action,
+         @on_success_step_id,
+         @on_fail_action,
+         @on_fail_step_id,
+         @retry_attempts,
+         @retry_interval,
+         @os_run_priority,
+         @subsystem,
+         @server,
+         @database_name,
+         @flags,
+         @proxy_name,
+         @output_file_name
+
+WHILE @@FETCH_STATUS = 0
+BEGIN
+    SET @SQL = @SQL + ''
+EXEC @ReturnCode = msdb.dbo.sp_add_jobstep
+    @job_id=@jobId,
+    @step_name=N'''''' + @step_name + '''''', 
+    @command=N'''''' + REPLACE(ISNULL(@command,''''),'''''''','''''''''''') + '''''',
+    @additional_parameters=N'''''' + ISNULL(@additional_parameters,'''') + '''''',
+    @step_id='' + CAST(@step_id AS NVARCHAR(5)) + '', 
+    @cmdexec_success_code='' + CAST(@cmdexec_success_code AS NVARCHAR(5)) + '', 
+    @on_success_action='' + CAST(@on_success_action AS NVARCHAR(5)) + '', 
+    @on_success_step_id='' + CAST(@on_success_step_id AS NVARCHAR(5)) + '', 
+    @on_fail_action='' + CAST(@on_fail_action AS NVARCHAR(5)) + '', 
+    @on_fail_step_id='' + CAST(@on_fail_step_id AS NVARCHAR(5)) + '', 
+    @retry_attempts='' + CAST(@retry_attempts AS NVARCHAR(5)) + '', 
+    @retry_interval='' + CAST(@retry_interval AS NVARCHAR(5)) + '', 
+    @os_run_priority='' + CAST(@os_run_priority AS NVARCHAR(5)) + '',
+    @subsystem=N'''''' + ISNULL(@subsystem,'''') + '''''', 
+    @server=N'''''' + ISNULL(@server,'''') + '''''', 
+    @database_name=N'''''' + ISNULL(@database_name,'''') + '''''', 
+    @flags='' + CAST(@flags AS NVARCHAR(5)) + '',
+    @proxy_name='''''' + ISNULL(@proxy_name,'''') + '''''', 
+    @output_file_name=N'''''' + ISNULL(@output_file_name,'''') + ''''''
+    ''
+
+    FETCH NEXT FROM JOB_STEPS
+    INTO @step_id,
+         @step_name,
+         @command,
+         @additional_parameters,
+         @cmdexec_success_code,
+         @on_success_action,
+         @on_success_step_id,
+         @on_fail_action,
+         @on_fail_step_id,
+         @retry_attempts,
+         @retry_interval,
+         @os_run_priority,
+         @subsystem,
+         @server,
+         @database_name,
+         @flags,
+         @proxy_name,
+         @output_file_name
+END
+
+CLOSE JOB_STEPS
+DEALLOCATE JOB_STEPS
+
+SET @date_created=
+(
+SELECT date_created from #jobs 
+where [name] = @JobName
+)
+
+SET @date_modified=
+(
+SELECT date_modified from #jobs 
+where [name] = @JobName
+)
+
+INSERT INTO [helper].[HistAgentJobs](
+		[timestamp],
         [job_name],
-        [deployment_type],
-        [deployment_id]
-    )
-    SELECT GETDATE(),
-           [name],
-           'START',
-           @deployment_id
-    FROM msdb.dbo.sysjobs;
+		[job_definition],
+        [deployment_type]
+) VALUES (
+	GETDATE(),
+	@JobName,
+	@SQL,
+	''START''
+)
+
+		delete from #JOBS where [name] = @JobName
+		SET @countsql = @countsql -1
+
+ END
+
+	drop table #JOBS
+END
+'                                              );
+
+EXEC sp_executesql @sqlstate_Agent;
+
+UPDATE helper.HistAgentJobs SET deployment_id = @deployment_id WHERE deployment_id IS NULL;
 
     -- Linked Servers
 
@@ -733,6 +1074,10 @@ BEGIN
 
         SET @object_name = N'[' + @database_name + N'].[' + @schema_name + N'].[' + @table_name + N']';
 
+		SET @sql = 'Use ' + @database_name + '
+
+		EXEC dbo.sp_GetDDL ''' + @object_name + ''';'
+
         INSERT INTO #tmp_tables2
         (
             [schema_name],
@@ -740,7 +1085,8 @@ BEGIN
             [definition],
             [database_name]
         )
-        EXEC dbo.sp_GetDDL @object_name;
+		EXEC sp_executesql @sql
+        --EXEC dbo.sp_GetDDL @object_name;
 
         DELETE #tmp_tables
         WHERE [id] = @id;
